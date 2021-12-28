@@ -74,7 +74,7 @@ var (
 	}
 	testOperators = lexerTest{
 		name:  "operators",
-		input: `+ - * / ! < >`,
+		input: `+ - * / ! < > == !=`,
 		expectedTokens: []token.Token{
 			{Type: token.PLUS, Literal: "+"},
 			{Type: token.DASH, Literal: "-"},
@@ -83,6 +83,8 @@ var (
 			{Type: token.BANG, Literal: "!"},
 			{Type: token.LESS, Literal: "<"},
 			{Type: token.GREATER, Literal: ">"},
+			{Type: token.EQ, Literal: "=="},
+			{Type: token.NEQ, Literal: "!="},
 		},
 	}
 	testKeywords = lexerTest{
