@@ -19,6 +19,8 @@ const (
 	BANG     = "!"
 	LT       = "<"
 	GT       = ">"
+	EQ       = "=="
+	NEQ      = "!="
 
 	// Delimiters
 	COMMA     = ","
