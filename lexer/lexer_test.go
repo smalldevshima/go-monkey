@@ -85,6 +85,19 @@ var (
 			{Type: token.GREATER, Literal: ">"},
 		},
 	}
+	testKeywords = lexerTest{
+		name:  "keywords",
+		input: `fn return true false let if else`,
+		expectedTokens: []token.Token{
+			{Type: token.FUNCTION, Literal: "fn"},
+			{Type: token.RETURN, Literal: "return"},
+			{Type: token.TRUE, Literal: "true"},
+			{Type: token.FALSE, Literal: "false"},
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IF, Literal: "if"},
+			{Type: token.ELSE, Literal: "else"},
+		},
+	}
 )
 
 /// Tests
@@ -95,6 +108,7 @@ func TestNextToken(t *testing.T) {
 		testFunctionDefinition,
 		testFunctionCall,
 		testOperators,
+		testKeywords,
 	}
 	for index, lexTest := range lexerTests {
 		good := t.Run(lexTest.name, func(tt *testing.T) {
