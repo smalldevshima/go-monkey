@@ -114,6 +114,14 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
+// peekChar returns the character at the current read position without advancing positions nor setting the char field.
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	}
+	return l.input[l.readPosition]
+}
+
 // readIdentifier consumes and returns a whole word up to the next character where isLetter=false.
 func (l *Lexer) readIdentifier() string {
 	start := l.position
