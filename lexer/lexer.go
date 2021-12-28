@@ -87,7 +87,7 @@ func newToken(tokenType token.TokenType, char byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(char)}
 }
 
-// isLetter returns true only if char is a letter from 'A' to 'Z' (ignoring case) or if char is the underscore '_'.
+// isLetter returns true for all ASCII characters that are valid to be used for keywords and identifiers.
 func isLetter(char byte) bool {
 	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
 }
