@@ -1,9 +1,18 @@
 package parser
 
 import (
+	"log"
+	"os"
+
 	"github.com/smalldevshima/go-monkey/ast"
 	"github.com/smalldevshima/go-monkey/lexer"
 	"github.com/smalldevshima/go-monkey/token"
+)
+
+/// Constant / Variables
+
+var (
+	parseErrorLog = log.New(os.Stderr, "PARSER_ERROR: ", log.Lshortfile|log.Lmsgprefix)
 )
 
 /// Types
@@ -92,5 +101,6 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	}
+	parseErrorLog.Printf("unexpected token of type %q: %q, expected token of type %q", p.peekToken.Type, p.peekToken.Literal, t)
 	return false
 }
