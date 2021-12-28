@@ -2,6 +2,28 @@ package lexer
 
 import "github.com/smalldevshima/go-monkeyi/token"
 
+/// Functions
+
+// isDigit returns true for all ASCII decimal number characters.
+func isDigit(char byte) bool {
+	return '0' <= char && char <= '9'
+}
+
+// isLetter returns true for all ASCII characters that are valid to be used for keywords and identifiers.
+func isLetter(char byte) bool {
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
+}
+
+// isWhitespace returns true for all ASCII characters that are considered whitespace for the lexer.
+func isWhitespace(char byte) bool {
+	return char == ' ' || char == '\t' || char == '\n' || char == '\r'
+}
+
+// newToken returns a Token with the given type and the given Literal ASCII charcode.
+func newToken(tokenType token.TokenType, char byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(char)}
+}
+
 /// Types
 
 type Lexer struct {
@@ -22,6 +44,8 @@ func New(input string) *Lexer {
 
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
+
+	l.skipWhitespace()
 
 	switch l.char {
 	case '=':
@@ -46,6 +70,12 @@ func (l *Lexer) NextToken() token.Token {
 	default:
 		if isLetter(l.char) {
 			tok.Literal = l.readIdentifier()
+			tok.Type = token.LookupIdent(tok.Literal)
+			// return immediately to not advance read position further
+			return tok
+		} else if isDigit(l.char) {
+			tok.Literal = l.readInteger()
+			tok.Type = token.INTEGER
 			// return immediately to not advance read position further
 			return tok
 		} else {
@@ -70,8 +100,7 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
-// readIdentifier reads and returns a whole word up to the next character where isLetter=false.
-// The readChar method is used to consume the input, so position and read position are updated accordingly.
+// readIdentifier consumes and returns a whole word up to the next character where isLetter=false.
 func (l *Lexer) readIdentifier() string {
 	start := l.position
 	for isLetter(l.char) {
@@ -80,14 +109,18 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[start:l.position]
 }
 
-/// Package helper functions
-
-// newToken returns a Token with the given type and the given Literal ASCII charcode.
-func newToken(tokenType token.TokenType, char byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(char)}
+// readInteger consumes and returns a whole number up to the next character where isDigit=false.
+func (l *Lexer) readInteger() string {
+	start := l.position
+	for isDigit(l.char) {
+		l.readChar()
+	}
+	return l.input[start:l.position]
 }
 
-// isLetter returns true for all ASCII characters that are valid to be used for keywords and identifiers.
-func isLetter(char byte) bool {
-	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
+// skipWhitespace consumes the input until the next character where isWhitespace=false.
+func (l *Lexer) skipWhitespace() {
+	for isWhitespace(l.char) {
+		l.readChar()
+	}
 }
