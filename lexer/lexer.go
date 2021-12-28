@@ -1,5 +1,7 @@
 package lexer
 
+import "github.com/smalldevshima/go-monkeyi/token"
+
 /// Types
 
 type Lexer struct {
@@ -14,7 +16,40 @@ type Lexer struct {
 
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
+	l.readChar()
 	return l
+}
+
+func (l *Lexer) NextToken() token.Token {
+	var tok token.Token
+
+	newToken := func(tokenType token.TokenType, char byte) token.Token {
+		return token.Token{Type: tokenType, Literal: string(char)}
+	}
+
+	switch l.char {
+	case '=':
+		tok = newToken(token.ASSIGN, l.char)
+	case ';':
+		tok = newToken(token.SEMICOLON, l.char)
+	case '(':
+		tok = newToken(token.LPAREN, l.char)
+	case ')':
+		tok = newToken(token.RPAREN, l.char)
+	case ',':
+		tok = newToken(token.COMMA, l.char)
+	case '+':
+		tok = newToken(token.PLUS, l.char)
+	case '{':
+		tok = newToken(token.LBRACE, l.char)
+	case '}':
+		tok = newToken(token.RBRACE, l.char)
+	case 0:
+		tok.Literal = ""
+		tok.Type = token.EOF
+	}
+	l.readChar()
+	return tok
 }
 
 // readChar sets the char field to the next character at read position of the input.
