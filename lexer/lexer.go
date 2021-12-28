@@ -48,18 +48,32 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.char {
+	// operators
 	case '=':
 		tok = newToken(token.ASSIGN, l.char)
+	case '+':
+		tok = newToken(token.PLUS, l.char)
+	case '-':
+		tok = newToken(token.DASH, l.char)
+	case '*':
+		tok = newToken(token.ASTERISK, l.char)
+	case '/':
+		tok = newToken(token.SLASH, l.char)
+	case '!':
+		tok = newToken(token.BANG, l.char)
+	case '<':
+		tok = newToken(token.LESS, l.char)
+	case '>':
+		tok = newToken(token.GREATER, l.char)
+	// delimiters
 	case ';':
 		tok = newToken(token.SEMICOLON, l.char)
+	case ',':
+		tok = newToken(token.COMMA, l.char)
 	case '(':
 		tok = newToken(token.LPAREN, l.char)
 	case ')':
 		tok = newToken(token.RPAREN, l.char)
-	case ',':
-		tok = newToken(token.COMMA, l.char)
-	case '+':
-		tok = newToken(token.PLUS, l.char)
 	case '{':
 		tok = newToken(token.LBRACE, l.char)
 	case '}':
