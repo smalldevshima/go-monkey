@@ -9,8 +9,8 @@ import (
 /// Constants / Variables
 
 var (
-	testLetAssignment = lexerTest{
-		name: "let assignment",
+	testLetInitialization = lexerTest{
+		name: "let variable initialization",
 		input: `
 			let five = 5;
 			let ten = 10;
@@ -26,7 +26,6 @@ var (
 			{Type: token.ASSIGN, Literal: "="},
 			{Type: token.INTEGER, Literal: "10"},
 			{Type: token.SEMICOLON, Literal: ";"},
-			{Type: token.EOF, Literal: ""},
 		},
 	}
 	testFunctionDefinition = lexerTest{
@@ -53,7 +52,6 @@ var (
 			{Type: token.SEMICOLON, Literal: ";"},
 			{Type: token.RBRACE, Literal: "}"},
 			{Type: token.SEMICOLON, Literal: ";"},
-			{Type: token.EOF, Literal: ""},
 		},
 	}
 	testFunctionCall = lexerTest{
@@ -72,7 +70,19 @@ var (
 			{Type: token.IDENTIFIER, Literal: "ten"},
 			{Type: token.RPAREN, Literal: ")"},
 			{Type: token.SEMICOLON, Literal: ";"},
-			{Type: token.EOF, Literal: ""},
+		},
+	}
+	testOperators = lexerTest{
+		name:  "operators",
+		input: `+ - * / ! < >`,
+		expectedTokens: []token.Token{
+			{Type: token.PLUS, Literal: "+"},
+			{Type: token.DASH, Literal: "-"},
+			{Type: token.ASTERISK, Literal: "*"},
+			{Type: token.SLASH, Literal: "/"},
+			{Type: token.BANG, Literal: "!"},
+			{Type: token.LESS, Literal: "<"},
+			{Type: token.GREATER, Literal: ">"},
 		},
 	}
 )
@@ -81,15 +91,20 @@ var (
 
 func TestNextToken(t *testing.T) {
 	lexerTests := []lexerTest{
-		testLetAssignment,
+		testLetInitialization,
 		testFunctionDefinition,
 		testFunctionCall,
+		testOperators,
 	}
 	for index, lexTest := range lexerTests {
 		good := t.Run(lexTest.name, func(tt *testing.T) {
 			lex := New(lexTest.input)
 
 			for index, expected := range lexTest.expectedTokens {
+				if expected.Type == token.EOF {
+					// EOF is handled after loop
+					break
+				}
 				have := lex.NextToken()
 
 				if have.Type != expected.Type {
@@ -99,6 +114,10 @@ func TestNextToken(t *testing.T) {
 				if have.Literal != expected.Literal {
 					tt.Fatalf("token-test[%d] - literal wrong. expected=%q, have=%q", index, expected.Literal, have.Literal)
 				}
+			}
+			end := lex.NextToken()
+			if end.Type != token.EOF {
+				tt.Fatalf("token-test[%d] - unconsumed token in input. expected=%q, have=%q with literal=%q", index, token.EOF, end.Type, end.Literal)
 			}
 		})
 		if !good {
