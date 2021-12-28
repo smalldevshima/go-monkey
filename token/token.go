@@ -7,8 +7,8 @@ const (
 	EOF     TokenType = "EOF"
 
 	// Identifiers and literals
-	IDENT = "IDENT" // add, foo, bar, "hello", true
-	INT   = "INT"   // 123
+	IDENTIFIER = "IDENTIFIER" // add, foo, bar, "hello", true
+	INTEGER    = "INTEGER"    // 123
 
 	// Operators
 	ASSIGN = "="
@@ -39,12 +39,12 @@ var (
 /// Functions
 
 // LookupIdent checks if the given identifier is a keyword and if so, returns its TokenType.
-// If the given identifier is not a keyword, it returns the TokenType for identifiers.
+// If the given identifier is not a keyword, it returns the TokenType for user defined identifiers.
 func LookupIdent(ident string) TokenType {
 	if tok, ok := keywords[ident]; ok {
 		return tok
 	}
-	return IDENT
+	return IDENTIFIER
 }
 
 /// Types
