@@ -14,11 +14,13 @@ type Node interface {
 
 type Statement interface {
 	Node
+	// statementNode is a marker function that is only added to help the go tools.
 	statementNode()
 }
 
 type Expression interface {
 	Node
+	// expressionNode is a marker function that is only added to help the go tools.
 	expressionNode()
 }
 
@@ -36,6 +38,20 @@ func (p *Program) TokenLiteral() string {
 }
 
 type LetStatement struct {
-	Token token.Token // the token.LET token
-
+	// the token.LET token
+	Token token.Token
+	Name  *Identifier
+	Value Expression
 }
+
+func (ls *LetStatement) statementNode()       {}
+func (ls *LetStatement) TokenLiteral() string { return i.Token.Literal }
+
+type Identifier struct {
+	// the token.IDENTIFIER token
+	Token token.Token
+	Value string
+}
+
+func (i *Identifier) expressionNode()      {}
+func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
