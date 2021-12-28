@@ -31,14 +31,26 @@ const (
 
 	// Keywords
 	FUNCTION = "FUNCTION"
+	RETURN   = "RETURN"
 	LET      = "LET"
+
+	TRUE  = "TRUE"
+	FALSE = "FALSE"
+
+	IF   = "IF"
+	ELSE = "ELSE"
 )
 
 var (
 	// keywords is a map of literals to their corresponding TokenType.
 	keywords = map[string]TokenType{
-		"fn":  FUNCTION,
-		"let": LET,
+		"fn":     FUNCTION,
+		"return": RETURN,
+		"let":    LET,
+		"true":   TRUE,
+		"false":  FALSE,
+		"if":     IF,
+		"else":   ELSE,
 	}
 )
 
