@@ -11,8 +11,14 @@ const (
 	INTEGER    = "INTEGER"    // 123
 
 	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN   = "="
+	PLUS     = "+"
+	DASH     = "-"
+	ASTERISK = "*"
+	SLASH    = "/"
+	BANG     = "!"
+	LESS     = "<"
+	GREATER  = ">"
 
 	// Delimiters
 	COMMA     = ","
