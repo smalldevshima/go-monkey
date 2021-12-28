@@ -23,10 +23,6 @@ func New(input string) *Lexer {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
-	newToken := func(tokenType token.TokenType, char byte) token.Token {
-		return token.Token{Type: tokenType, Literal: string(char)}
-	}
-
 	switch l.char {
 	case '=':
 		tok = newToken(token.ASSIGN, l.char)
@@ -47,6 +43,14 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	default:
+		if isLetter(l.char) {
+			tok.Literal = l.readIdentifier()
+			// return immediately to not advance read position further
+			return tok
+		} else {
+			tok = newToken(token.ILLEGAL, l.char)
+		}
 	}
 	l.readChar()
 	return tok
@@ -54,6 +58,7 @@ func (l *Lexer) NextToken() token.Token {
 
 // readChar sets the char field to the next character at read position of the input.
 // The position is updated to the read position and the read position is advanced by 1.
+//
 // If the read position exceeds the size of the input, then the char field is set to 0.
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
@@ -63,4 +68,26 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
+}
+
+// readIdentifier reads and returns a whole word up to the next character where isLetter=false.
+// The readChar method is used to consume the input, so position and read position are updated accordingly.
+func (l *Lexer) readIdentifier() string {
+	start := l.position
+	for isLetter(l.char) {
+		l.readChar()
+	}
+	return l.input[start:l.position]
+}
+
+/// Package helper functions
+
+// newToken returns a Token with the given type and the given Literal ASCII charcode.
+func newToken(tokenType token.TokenType, char byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(char)}
+}
+
+// isLetter returns true only if char is a letter from 'A' to 'Z' (ignoring case) or if char is the underscore '_'.
+func isLetter(char byte) bool {
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
 }
