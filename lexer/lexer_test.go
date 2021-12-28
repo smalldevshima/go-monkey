@@ -6,78 +6,112 @@ import (
 	"github.com/smalldevshima/go-monkeyi/token"
 )
 
-/// Constants
+/// Constants / Variables
 
-const (
-	MONKEY_INPUT = `
-let five = 5;
-let ten = 10;
-
-let add = fn(x, y) {
-	x + y;
-};
-
-let result = add(five, ten);
-`
+var (
+	testLetAssignment = lexerTest{
+		name: "let assignment",
+		input: `
+			let five = 5;
+			let ten = 10;
+			`,
+		expectedTokens: []token.Token{
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "five"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.INTEGER, Literal: "5"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "ten"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.INTEGER, Literal: "10"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.EOF, Literal: ""},
+		},
+	}
+	testFunctionDefinition = lexerTest{
+		name: "function definition",
+		input: `
+			let add = fn(x, y) {
+				x + y;
+			};
+			`,
+		expectedTokens: []token.Token{
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "add"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.FUNCTION, Literal: "fn"},
+			{Type: token.LPAREN, Literal: "("},
+			{Type: token.IDENTIFIER, Literal: "x"},
+			{Type: token.COMMA, Literal: ","},
+			{Type: token.IDENTIFIER, Literal: "y"},
+			{Type: token.RPAREN, Literal: ")"},
+			{Type: token.LBRACE, Literal: "{"},
+			{Type: token.IDENTIFIER, Literal: "x"},
+			{Type: token.PLUS, Literal: "+"},
+			{Type: token.IDENTIFIER, Literal: "y"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.RBRACE, Literal: "}"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.EOF, Literal: ""},
+		},
+	}
+	testFunctionCall = lexerTest{
+		name: "function call",
+		input: `
+		let result = add(five, ten);
+		`,
+		expectedTokens: []token.Token{
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "result"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.IDENTIFIER, Literal: "add"},
+			{Type: token.LPAREN, Literal: "("},
+			{Type: token.IDENTIFIER, Literal: "five"},
+			{Type: token.COMMA, Literal: ","},
+			{Type: token.IDENTIFIER, Literal: "ten"},
+			{Type: token.RPAREN, Literal: ")"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.EOF, Literal: ""},
+		},
+	}
 )
 
-/// Package functions
+/// Tests
 
 func TestNextToken(t *testing.T) {
-	tests := []struct {
-		expectedType    token.TokenType
-		expectedLiteral string
-	}{
-		{token.LET, "let"},
-		{token.IDENTIFIER, "five"},
-		{token.ASSIGN, "="},
-		{token.INTEGER, "5"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENTIFIER, "ten"},
-		{token.ASSIGN, "="},
-		{token.INTEGER, "10"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENTIFIER, "add"},
-		{token.ASSIGN, "="},
-		{token.FUNCTION, "fn"},
-		{token.LPAREN, "("},
-		{token.IDENTIFIER, "x"},
-		{token.COMMA, ","},
-		{token.IDENTIFIER, "y"},
-		{token.RPAREN, ")"},
-		{token.LBRACE, "{"},
-		{token.IDENTIFIER, "x"},
-		{token.PLUS, "+"},
-		{token.IDENTIFIER, "y"},
-		{token.SEMICOLON, ";"},
-		{token.RBRACE, "}"},
-		{token.SEMICOLON, ";"},
-		{token.LET, "let"},
-		{token.IDENTIFIER, "result"},
-		{token.ASSIGN, "="},
-		{token.IDENTIFIER, "add"},
-		{token.LPAREN, "("},
-		{token.IDENTIFIER, "five"},
-		{token.COMMA, ","},
-		{token.IDENTIFIER, "ten"},
-		{token.RPAREN, ")"},
-		{token.SEMICOLON, ";"},
-		{token.EOF, ""},
+	lexerTests := []lexerTest{
+		testLetAssignment,
+		testFunctionDefinition,
+		testFunctionCall,
 	}
+	for index, lexTest := range lexerTests {
+		good := t.Run(lexTest.name, func(tt *testing.T) {
+			lex := New(lexTest.input)
 
-	lex := New(MONKEY_INPUT)
+			for index, expected := range lexTest.expectedTokens {
+				have := lex.NextToken()
 
-	for index, test := range tests {
-		tok := lex.NextToken()
+				if have.Type != expected.Type {
+					tt.Fatalf("token-test[%d] - tokentype wrong. expected=%q, have=%q", index, expected.Type, have.Type)
+				}
 
-		if tok.Type != test.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q", index, test.expectedType, tok.Type)
-		}
-
-		if tok.Literal != test.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q", index, test.expectedLiteral, tok.Literal)
+				if have.Literal != expected.Literal {
+					tt.Fatalf("token-test[%d] - literal wrong. expected=%q, have=%q", index, expected.Literal, have.Literal)
+				}
+			}
+		})
+		if !good {
+			t.Logf("lexer-test[%d] %q failed.", index, lexTest.name)
+			t.Fail()
 		}
 	}
+}
+
+/// Types
+
+type lexerTest struct {
+	name           string
+	input          string
+	expectedTokens []token.Token
 }
