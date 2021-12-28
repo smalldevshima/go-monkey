@@ -1,6 +1,6 @@
 package lexer
 
-import "github.com/smalldevshima/go-monkeyi/token"
+import "github.com/smalldevshima/go-monkey/token"
 
 /// Functions
 

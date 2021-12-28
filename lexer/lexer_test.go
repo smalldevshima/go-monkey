@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/smalldevshima/go-monkeyi/token"
+	"github.com/smalldevshima/go-monkey/token"
 )
 
 /// Constants / Variables

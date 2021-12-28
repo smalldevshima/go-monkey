@@ -1,3 +1,3 @@
-module github.com/smalldevshima/go-monkeyi
+module github.com/smalldevshima/go-monkey
 
 go 1.17

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/smalldevshima/go-monkeyi/lexer"
-	"github.com/smalldevshima/go-monkeyi/token"
+	"github.com/smalldevshima/go-monkey/lexer"
+	"github.com/smalldevshima/go-monkey/token"
 )
 
 const PROMPT = ">> "
