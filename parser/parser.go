@@ -1,8 +1,7 @@
 package parser
 
 import (
-	"log"
-	"os"
+	"fmt"
 
 	"github.com/smalldevshima/go-monkey/ast"
 	"github.com/smalldevshima/go-monkey/lexer"
@@ -11,22 +10,24 @@ import (
 
 /// Constant / Variables
 
-var (
-	parseErrorLog = log.New(os.Stderr, "PARSER_ERROR: ", log.Lshortfile|log.Lmsgprefix)
-)
-
 /// Types
 
 // The Parser consumes the output of a given lexer.Lexer and produces an ast.Program as its output.
+// A Parser's zero value is not usable and new ones need to be created using parser.New.
 type Parser struct {
 	lx *lexer.Lexer
 
 	currentToken token.Token
 	peekToken    token.Token
+
+	errors []string
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{lx: l}
+	p := &Parser{
+		lx:     l,
+		errors: []string{},
+	}
 
 	// Read two tokens, so currentToken and peekToken are both set
 	p.nextToken()
@@ -35,10 +36,8 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-// nextToken advances the tokens read from the internal Lexer.
-func (p *Parser) nextToken() {
-	p.currentToken = p.peekToken
-	p.peekToken = p.lx.NextToken()
+func (p *Parser) Errors() []string {
+	return p.errors
 }
 
 // ParseProgram consumes the internal Lexer's token list and produces a Program from them.
@@ -93,6 +92,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	return stmt
 }
 
+// nextToken advances the tokens read from the internal Lexer.
+func (p *Parser) nextToken() {
+	p.currentToken = p.peekToken
+	p.peekToken = p.lx.NextToken()
+}
+
 // expectPeek compares the next token against the provided.
 // If they are the same, it advances the tokens and returns true.
 // Otherwise it leaves the tokens as is and returns false.
@@ -101,8 +106,14 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	}
-	parseErrorLog.Printf("unexpected token of type %q: %q, expected token of type %q", p.peekToken.Type, p.peekToken.Literal, t)
+	p.peekError(t)
 	return false
+}
+
+// peekError creates a new unexpected-token error message and appends it to the error list.
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("unexpected token of type %q with literal %q, expected token of type %q", p.peekToken.Type, p.peekToken.Literal, t)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
