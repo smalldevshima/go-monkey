@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.BANG, token.DASH}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
 
@@ -74,9 +74,6 @@ func New(l *lexer.Lexer) *Parser {
 	}
 
 	// register expression parsing fns
-	p.registerPrefix(token.IDENTIFIER, p.parseIdentifier)
-	p.registerPrefix(token.INTEGER, p.parseIntegerLiteral)
-
 	for _, tok := range prefixTokens {
 		p.registerPrefix(tok, p.parsePrefixExpression)
 	}
@@ -227,16 +224,38 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	exp := &ast.PrefixExpression{
-		Token:    p.currentToken,
-		Operator: p.currentToken.Literal,
+	switch p.currentToken.Type {
+	case token.INTEGER:
+		if s := p.parseIntegerLiteral(); s != nil {
+			return s
+		}
+	case token.IDENTIFIER:
+		if s := p.parseIdentifier(); s != nil {
+			return s
+		}
+	case token.TRUE, token.FALSE:
+		if s := p.parseBooleanLiteral(); s != nil {
+			return s
+		}
+	default:
+		exp := &ast.PrefixExpression{
+			Token:    p.currentToken,
+			Operator: p.currentToken.Literal,
+		}
+
+		p.nextToken()
+
+		exp.Right = p.parseExpression(PREFIX)
+		return exp
 	}
-
-	p.nextToken()
-
-	exp.Right = p.parseExpression(PREFIX)
-	return exp
+	msg := fmt.Sprintf("unexpected token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
+	p.errors = append(p.errors, msg)
+	return nil
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
