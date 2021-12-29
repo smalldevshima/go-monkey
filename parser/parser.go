@@ -13,7 +13,7 @@ import (
 
 // Expression evaluation precedence constants where a higher value means more precedence.
 const (
-	_ uint = iota
+	_ Precedence = iota
 	LOWEST
 	EQUALS
 	LTGT
@@ -23,7 +23,21 @@ const (
 	CALL
 )
 
+var (
+	precedences = map[token.TokenType]Precedence{
+		token.EQ:       EQUALS,
+		token.LT:       LTGT,
+		token.GT:       LTGT,
+		token.PLUS:     SUM,
+		token.DASH:     SUM,
+		token.SLASH:    PRODUCT,
+		token.ASTERISK: PRODUCT,
+	}
+)
+
 /// Types
+
+type Precedence uint
 
 type (
 	prefixParseFn func() ast.Expression
@@ -161,7 +175,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
-func (p *Parser) parseExpression(precedence uint) ast.Expression {
+func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 	prefix, ok := p.prefixParseFns[p.currentToken.Type]
 	if !ok {
 		p.noPrefixParseFnError(p.currentToken.Type)
@@ -243,4 +257,18 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) currentPrecedence() Precedence {
+	if p, ok := precedences[p.currentToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+func (p *Parser) peekPrecedence() Precedence {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return LOWEST
 }
