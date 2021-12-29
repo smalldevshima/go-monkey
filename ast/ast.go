@@ -1,6 +1,17 @@
 package ast
 
-import "github.com/smalldevshima/go-monkey/token"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/smalldevshima/go-monkey/token"
+)
+
+/// Constants / Variables
+
+const (
+	emptyExpressionValue = "<NIL>"
+)
 
 /// Types
 
@@ -10,6 +21,7 @@ type Node interface {
 	// TokenLiteral produces the string literal that the node is associated with.
 	// It is only used for debugging and testing.
 	TokenLiteral() string
+	String() string
 }
 
 type Statement interface {
@@ -37,6 +49,33 @@ func (p *Program) TokenLiteral() string {
 	return ""
 }
 
+func (p *Program) String() string {
+	var out strings.Builder
+
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+		out.WriteRune('\n')
+	}
+
+	return out.String()
+}
+
+type ExpressionStatement struct {
+	// the first token of the expression
+	Token      token.Token
+	Expression Expression
+}
+
+func (es *ExpressionStatement) statementNode()       {}
+func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+func (es *ExpressionStatement) String() string {
+	value := emptyExpressionValue
+	if es.Expression != nil {
+		value = es.Expression.String()
+	}
+	return fmt.Sprintf("%s;", value)
+}
+
 type LetStatement struct {
 	// the token.LET token
 	Token token.Token
@@ -46,6 +85,13 @@ type LetStatement struct {
 
 func (ls *LetStatement) statementNode()       {}
 func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
+func (ls *LetStatement) String() string {
+	value := emptyExpressionValue
+	if ls.Value != nil {
+		value = ls.Value.String()
+	}
+	return fmt.Sprintf("%s %s = %s;", ls.TokenLiteral(), ls.Name.String(), value)
+}
 
 type ReturnStatement struct {
 	// the token.RETURN token
@@ -55,6 +101,13 @@ type ReturnStatement struct {
 
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+func (rs *ReturnStatement) String() string {
+	value := emptyExpressionValue
+	if rs.ReturnValue != nil {
+		value = rs.ReturnValue.String()
+	}
+	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), value)
+}
 
 type Identifier struct {
 	// the token.IDENTIFIER token
@@ -64,3 +117,4 @@ type Identifier struct {
 
 func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+func (i *Identifier) String() string       { return i.Value }
