@@ -285,7 +285,7 @@ func checkParserErrors(t *testing.T, p *Parser) {
 
 	t.Errorf("parser has %d errors:", len(errors))
 	for i, msg := range errors {
-		if i > 10 {
+		if i >= 10 {
 			t.Errorf("omitting more errors ...")
 			break
 		}
