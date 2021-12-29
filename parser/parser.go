@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA, token.IF}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA, token.IF, token.FUNCTION}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
 
@@ -247,48 +247,53 @@ func (p *Parser) parseBooleanLiteral() ast.Expression {
 	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
 }
 
+// parsePrefixExpression handles the creation of an ast.Expression at the current token
+// by calling the corresponding parsing method.
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	switch p.currentToken.Type {
+	case token.BANG, token.DASH:
+		if exp := p.parseUnaryOperator(); exp != nil {
+			return exp
+		}
 	case token.INTEGER:
-		if s := p.parseIntegerLiteral(); s != nil {
-			return s
+		if exp := p.parseIntegerLiteral(); exp != nil {
+			return exp
 		}
 	case token.IDENTIFIER:
-		if s := p.parseIdentifier(); s != nil {
-			return s
+		if exp := p.parseIdentifier(); exp != nil {
+			return exp
 		}
 	case token.TRUE, token.FALSE:
-		if s := p.parseBooleanLiteral(); s != nil {
-			return s
+		if exp := p.parseBooleanLiteral(); exp != nil {
+			return exp
 		}
 	case token.LPAREN:
-		p.nextToken()
-
-		exp := p.parseExpression(LOWEST)
-		if exp == nil || !p.expectPeek(token.RPAREN) {
-			return nil
+		if exp := p.parseGroupedExpression(); exp != nil {
+			return exp
 		}
-		return exp
 	case token.IF:
 		if exp := p.parseIfExpression(); exp != nil {
 			return exp
 		}
 	case token.COMMA:
 		// todo
-	case token.BANG, token.DASH:
-		exp := &ast.PrefixExpression{
-			Token:    p.currentToken,
-			Operator: p.currentToken.Literal,
-		}
-
-		p.nextToken()
-
-		exp.Right = p.parseExpression(PREFIX)
-		return exp
 	}
 	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
 	p.errors = append(p.errors, msg)
 	return nil
+}
+
+// parseUnaryOperator creates an ast.PrefixExpression from the operators '!' and '-'
+func (p *Parser) parseUnaryOperator() *ast.PrefixExpression {
+	exp := &ast.PrefixExpression{
+		Token:    p.currentToken,
+		Operator: p.currentToken.Literal,
+	}
+
+	p.nextToken()
+
+	exp.Right = p.parseExpression(PREFIX)
+	return exp
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
@@ -301,6 +306,16 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	pre := p.currentPrecedence()
 	p.nextToken()
 	exp.Right = p.parseExpression(pre)
+	return exp
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+
+	exp := p.parseExpression(LOWEST)
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
 	return exp
 }
 
