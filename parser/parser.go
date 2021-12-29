@@ -225,6 +225,19 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return exp
 }
 
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	exp := &ast.InfixExpression{
+		Token:    p.currentToken,
+		Operator: p.currentToken.Literal,
+		Left:     left,
+	}
+
+	pre := p.currentPrecedence()
+	p.nextToken()
+	exp.Right = p.parseExpression(pre)
+	return exp
+}
+
 // nextToken advances the tokens read from the internal Lexer.
 func (p *Parser) nextToken() {
 	p.currentToken = p.peekToken
