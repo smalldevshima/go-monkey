@@ -180,6 +180,25 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{
+		Token:      p.currentToken,
+		Statements: []ast.Statement{},
+	}
+
+	p.nextToken()
+
+	for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return block
+}
+
 func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 	prefix, ok := p.prefixParseFns[p.currentToken.Type]
 	if !ok {
@@ -251,7 +270,9 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		}
 		return exp
 	case token.IF:
-		// todo
+		if exp := p.parseIfExpression(); exp != nil {
+			return exp
+		}
 	case token.COMMA:
 		// todo
 	case token.BANG, token.DASH:
@@ -280,6 +301,39 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	pre := p.currentPrecedence()
 	p.nextToken()
 	exp.Right = p.parseExpression(pre)
+	return exp
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	exp := &ast.IfExpression{Token: p.currentToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	exp.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	exp.Then = p.parseBlockStatement()
+
+	if !p.peekTokenIs(token.ELSE) {
+		return exp
+	}
+
+	p.nextToken()
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	exp.Otherwise = p.parseBlockStatement()
+
 	return exp
 }
 
