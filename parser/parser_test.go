@@ -141,8 +141,8 @@ func TestPrefixExpression(t *testing.T) {
 		{"-15", "-", 15},
 	}
 
-	for index, test := range prefixTests {
-		t.Run("prefix"+fmt.Sprint(index), func(tt *testing.T) {
+	for _, test := range prefixTests {
+		t.Run("prefix"+test.operator, func(tt *testing.T) {
 			l := lexer.New(test.input)
 			p := New(l)
 			program := p.ParseProgram()
