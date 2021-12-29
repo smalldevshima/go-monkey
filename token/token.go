@@ -2,45 +2,42 @@ package token
 
 /// Constants and Variables
 
+// Possible token types for lexer/ parser/ ast
 const (
 	ILLEGAL TokenType = "ILLEGAL"
 	EOF     TokenType = "EOF"
 
-	// Identifiers and literals
-	IDENTIFIER = "IDENTIFIER" // add, foo, bar, "hello", true
-	INTEGER    = "INTEGER"    // 123
+	IDENTIFIER TokenType = "IDENTIFIER"
+	INTEGER    TokenType = "INTEGER"
 
-	// Operators
-	ASSIGN   = "="
-	PLUS     = "+"
-	DASH     = "-"
-	ASTERISK = "*"
-	SLASH    = "/"
-	BANG     = "!"
-	LT       = "<"
-	GT       = ">"
-	EQ       = "=="
-	NEQ      = "!="
+	ASSIGN   TokenType = "="
+	PLUS     TokenType = "+"
+	DASH     TokenType = "-"
+	ASTERISK TokenType = "*"
+	SLASH    TokenType = "/"
+	BANG     TokenType = "!"
+	LT       TokenType = "<"
+	GT       TokenType = ">"
+	EQ       TokenType = "=="
+	NEQ      TokenType = "!="
 
-	// Delimiters
-	COMMA     = ","
-	SEMICOLON = ";"
+	COMMA     TokenType = ","
+	SEMICOLON TokenType = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN TokenType = "("
+	RPAREN TokenType = ")"
+	LBRACE TokenType = "{"
+	RBRACE TokenType = "}"
 
-	// Keywords
-	FUNCTION = "FUNCTION"
-	RETURN   = "RETURN"
-	LET      = "LET"
+	FUNCTION TokenType = "FUNCTION"
+	RETURN   TokenType = "RETURN"
+	LET      TokenType = "LET"
 
-	TRUE  = "TRUE"
-	FALSE = "FALSE"
+	TRUE  TokenType = "TRUE"
+	FALSE TokenType = "FALSE"
 
-	IF   = "IF"
-	ELSE = "ELSE"
+	IF   TokenType = "IF"
+	ELSE TokenType = "ELSE"
 )
 
 var (
