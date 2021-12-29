@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/smalldevshima/go-monkey/ast"
 	"github.com/smalldevshima/go-monkey/lexer"
@@ -53,6 +54,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	// register expression parsing fns
 	p.registerPrefix(token.IDENTIFIER, p.parseIdentifier)
+	p.registerPrefix(token.INTEGER, p.parseIntegerLiteral)
 
 	// Read two tokens, so currentToken and peekToken are both set
 	p.nextToken()
@@ -168,6 +170,18 @@ func (p *Parser) parseExpression(precedence uint) ast.Expression {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as int64", p.currentToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit := &ast.IntegerLiteral{Token: p.currentToken, Value: value}
+	return lit
 }
 
 // nextToken advances the tokens read from the internal Lexer.
