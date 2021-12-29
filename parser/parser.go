@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
 
@@ -242,7 +242,17 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if s := p.parseBooleanLiteral(); s != nil {
 			return s
 		}
-	default:
+	case token.LPAREN:
+		p.nextToken()
+
+		exp := p.parseExpression(LOWEST)
+		if exp == nil || !p.expectPeek(token.RPAREN) {
+			return nil
+		}
+		return exp
+	case token.COMMA:
+		// todo
+	case token.BANG, token.DASH:
 		exp := &ast.PrefixExpression{
 			Token:    p.currentToken,
 			Operator: p.currentToken.Literal,
@@ -312,7 +322,7 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("token %s cannot appear in prefix position", t)
+	msg := fmt.Sprintf("token %q cannot appear in prefix position", t)
 	p.errors = append(p.errors, msg)
 }
 
