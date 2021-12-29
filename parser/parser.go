@@ -58,13 +58,18 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 // parseStatement checks the current token type and calls the corresponding parse method.
 func (p *Parser) parseStatement() ast.Statement {
+	// * always check if parsed statement is nil, else the wrapped interface type will mask the nil value
 	switch p.currentToken.Type {
 	case token.LET:
-		// * check if s is nil, else the wrapped interface type will mask the nil value
 		if s := p.parseLetStatement(); s != nil {
 			return s
 		}
+	case token.RETURN:
+		if s := p.parseReturnStatement(); s != nil {
+			return s
+		}
 	}
+
 	return nil
 }
 
@@ -84,6 +89,24 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	// todo: currently expressions are skipped until a semicolon is found
 	for !p.currentTokenIs(token.SEMICOLON) {
 		if p.currentTokenIs(token.EOF) {
+			p.peekError(token.SEMICOLON)
+			return nil
+		}
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.currentToken}
+
+	p.nextToken()
+
+	// todo: currently expressions are skipped until a semicolon is found
+	for !p.currentTokenIs(token.SEMICOLON) {
+		if p.currentTokenIs(token.EOF) {
+			p.peekError(token.SEMICOLON)
 			return nil
 		}
 		p.nextToken()
