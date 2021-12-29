@@ -123,7 +123,7 @@ func TestIntergerLiteralExpression(t *testing.T) {
 		t.Fatalf("stmt.Expression is not *ast.IntegerLiteral. got=%T", stmt.Expression)
 	}
 	if literal.Value != 5 {
-		t.Errorf("literal.Value is not %d. got=%d", literal.Value)
+		t.Errorf("literal.Value is not 5. got=%d", literal.Value)
 	}
 	if literal.TokenLiteral() != "5" {
 		t.Errorf("literal.TokenLiteral is not '5'. got=%q", literal.TokenLiteral())
