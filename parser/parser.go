@@ -10,6 +10,18 @@ import (
 
 /// Constant / Variables
 
+// Expression evaluation precedence constants where a higher value means more precedence.
+const (
+	_ uint = iota
+	LOWEST
+	EQUALS
+	LTGT
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
+)
+
 /// Types
 
 type (
@@ -33,9 +45,14 @@ type Parser struct {
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		lx:     l,
-		errors: []string{},
+		lx:             l,
+		errors:         []string{},
+		prefixParseFns: make(map[token.TokenType]prefixParseFn),
+		infixParseFns:  make(map[token.TokenType]infixParseFn),
 	}
+
+	// register expression parsing fns
+	p.registerPrefix(token.IDENTIFIER, p.parseIdentifier)
 
 	// Read two tokens, so currentToken and peekToken are both set
 	p.nextToken()
@@ -74,6 +91,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		}
 	case token.RETURN:
 		if s := p.parseReturnStatement(); s != nil {
+			return s
+		}
+	default:
+		if s := p.parseExpressionStatement(); s != nil {
 			return s
 		}
 	}
@@ -123,6 +144,32 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.currentToken}
+
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence uint) ast.Expression {
+	prefix, ok := p.prefixParseFns[p.currentToken.Type]
+	if !ok {
+		return nil
+	}
+
+	leftExp := prefix()
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+}
+
 // nextToken advances the tokens read from the internal Lexer.
 func (p *Parser) nextToken() {
 	p.currentToken = p.peekToken
@@ -131,7 +178,7 @@ func (p *Parser) nextToken() {
 
 // expectPeek compares the next token against the provided.
 // If they are the same, it advances the tokens and returns true.
-// Otherwise it leaves the tokens as is and returns false.
+// Otherwise it leaves the tokens as is, adds an error to the internal list and returns false.
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
