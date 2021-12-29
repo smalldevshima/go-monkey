@@ -337,7 +337,23 @@ func checkIntegerLiteral(t *testing.T, exp ast.Expression, value int64) {
 	}
 }
 
+func checkBooleanLiteral(t *testing.T, exp ast.Expression, value bool) {
+	t.Helper()
+	boolLit, ok := exp.(*ast.BooleanLiteral)
+	if !ok {
+		t.Errorf("exp is not *ast.BooleanLiteral. got=%T", exp)
+		return
+	}
+	if boolLit.Token.Type != token.TRUE && boolLit.Token.Type != token.FALSE {
+		t.Errorf("boolLit.Token.Type is neither %q nor %q. got=%q", token.TRUE, token.FALSE, boolLit.Token.Type)
+	}
+	if boolLit.Value != value {
+		t.Errorf("boolLit.Value is not %v. got=%v", value, boolLit.Value)
+	}
+}
+
 func checkIdentifier(t *testing.T, exp ast.Expression, value string) {
+	t.Helper()
 	ident, ok := exp.(*ast.Identifier)
 	if !ok {
 		t.Errorf("exp not *ast.Identifier. got=%T", exp)
@@ -351,6 +367,7 @@ func checkIdentifier(t *testing.T, exp ast.Expression, value string) {
 }
 
 func checkLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) {
+	t.Helper()
 	switch v := expected.(type) {
 	case int:
 		checkIntegerLiteral(t, exp, int64(v))
@@ -358,12 +375,15 @@ func checkLiteralExpression(t *testing.T, exp ast.Expression, expected interface
 		checkIntegerLiteral(t, exp, v)
 	case string:
 		checkIdentifier(t, exp, v)
+	case bool:
+		checkBooleanLiteral(t, exp, v)
 	default:
 		t.Errorf("type of expected not handled. got=%T", expected)
 	}
 }
 
 func checkInfixExpression(t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) {
+	t.Helper()
 	infixExp, ok := exp.(*ast.InfixExpression)
 	if !ok {
 		t.Errorf("exp is not *ast.InfixExpression. got=%T(%s)", exp, exp)
