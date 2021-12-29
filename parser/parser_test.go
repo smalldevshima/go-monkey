@@ -373,6 +373,61 @@ func TestIfExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteral(t *testing.T) {
+	fnTests := []struct {
+		input   string
+		params  []string
+		bodyLen int
+	}{
+		{
+			`fn(x, y) { x + y; }`,
+			[]string{"x", "y"},
+			1,
+		},
+		{
+			`fn() { x; y; z; }`,
+			[]string{},
+			3,
+		},
+		{
+			`fn(a,b,c) {}`,
+			[]string{"a", "b", "c"},
+			0,
+		},
+	}
+	for index, test := range fnTests {
+		t.Run("functionLiteral"+fmt.Sprint(index), func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d: %s", len(program.Statements), program.Statements)
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+			fn, ok := stmt.Expression.(*ast.FunctionLiteral)
+			if !ok {
+				tt.Fatalf("stmt.Expression is not *ast.FunctionLiteral. got=%T", stmt.Expression)
+			}
+
+			if len(fn.Parameters) != len(test.params) {
+				tt.Fatalf("fn.Parameters does not contain %d identifiers. got=%d", len(test.params), len(fn.Parameters))
+			}
+			for index, param := range fn.Parameters {
+				checkIdentifier(tt, param, test.params[index])
+			}
+
+			if len(fn.Body.Statements) != test.bodyLen {
+				tt.Fatalf("fn.Body.Statements does not contain %d statements. got=%d", test.bodyLen, len(fn.Body.Statements))
+			}
+		})
+	}
+}
+
 func TestFunctionCallExpression(t *testing.T) {
 	input := `add(5, 10, 20)`
 
