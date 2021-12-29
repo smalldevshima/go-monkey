@@ -149,7 +149,7 @@ func TestPrefixExpression(t *testing.T) {
 			checkParserErrors(tt, p)
 
 			if len(program.Statements) != 1 {
-				tt.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d: %s", len(program.Statements), program.Statements)
 			}
 
 			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
