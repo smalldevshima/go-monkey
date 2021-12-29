@@ -106,31 +106,32 @@ func TestIdentifierExpression(t *testing.T) {
 	}
 }
 
-func TestIntergerLiteralExpression(t *testing.T) {
-	input := "5;"
-
-	l := lexer.New(input)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
-	}
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+func TestLiteralExpression(t *testing.T) {
+	literalTests := []struct {
+		input         string
+		expectedValue interface{}
+	}{
+		{"5;", 5},
+		{"true;", true},
+		{"false;", false},
 	}
 
-	literal, ok := stmt.Expression.(*ast.IntegerLiteral)
-	if !ok {
-		t.Fatalf("stmt.Expression is not *ast.IntegerLiteral. got=%T", stmt.Expression)
-	}
-	if literal.Value != 5 {
-		t.Errorf("literal.Value is not 5. got=%d", literal.Value)
-	}
-	if literal.TokenLiteral() != "5" {
-		t.Errorf("literal.TokenLiteral is not '5'. got=%q", literal.TokenLiteral())
+	for _, test := range literalTests {
+		t.Run("literal/"+fmt.Sprint(test.expectedValue), func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+			}
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+			checkLiteralExpression(tt, stmt.Expression, test.expectedValue)
+		})
 	}
 }
 
