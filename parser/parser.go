@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA, token.IF}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
 
@@ -250,6 +250,8 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 			return nil
 		}
 		return exp
+	case token.IF:
+		// todo
 	case token.COMMA:
 		// todo
 	case token.BANG, token.DASH:
@@ -263,7 +265,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		exp.Right = p.parseExpression(PREFIX)
 		return exp
 	}
-	msg := fmt.Sprintf("unexpected token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
+	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
 	p.errors = append(p.errors, msg)
 	return nil
 }
