@@ -146,19 +146,13 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
+	p.nextToken()
+
 	stmt.Value = p.parseExpression(LOWEST)
 
 	if !p.expectPeek(token.SEMICOLON) {
 		return nil
 	}
-	// // TODO: currently expressions are skipped until a semicolon is found
-	// for !p.currentTokenIs(token.SEMICOLON) {
-	// 	if p.currentTokenIs(token.EOF) {
-	// 		p.peekError(token.SEMICOLON)
-	// 		return nil
-	// 	}
-	// 	p.nextToken()
-	// }
 
 	return stmt
 }
@@ -173,15 +167,6 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	if !p.expectPeek(token.SEMICOLON) {
 		return nil
 	}
-
-	// // TODO: currently expressions are skipped until a semicolon is found
-	// for !p.currentTokenIs(token.SEMICOLON) {
-	// 	if p.currentTokenIs(token.EOF) {
-	// 		p.peekError(token.SEMICOLON)
-	// 		return nil
-	// 	}
-	// 	p.nextToken()
-	// }
 
 	return stmt
 }
