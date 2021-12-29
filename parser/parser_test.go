@@ -275,6 +275,19 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
+func TestFunctionCallExpression(t *testing.T) {
+	input := `add(5, 10, 20)`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not have 1 statement. got=%d: %s", len(program.Statements), program.Statements)
+	}
+	// todo
+}
+
 /// helpers
 
 func checkParserErrors(t *testing.T, p *Parser) {
