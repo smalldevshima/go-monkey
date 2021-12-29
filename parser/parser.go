@@ -100,7 +100,8 @@ func (p *Parser) parseStatement() ast.Statement {
 			return s
 		}
 	}
-
+	msg := fmt.Sprintf("unexpected token %q with value %q when trying to parse statement", p.currentToken.Type, p.currentToken.Literal)
+	p.errors = append(p.errors, msg)
 	return nil
 }
 
