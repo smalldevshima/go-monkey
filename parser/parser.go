@@ -27,11 +27,12 @@ var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
 	prefixTokens = []token.TokenType{token.BANG, token.DASH}
 	// infixTokens is the list of all tokens that are parsed in infix position
-	infixTokens = []token.TokenType{token.EQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
+	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
 
 	// precedences maps every infix operator to its corresponding precedence value
 	precedences = map[token.TokenType]Precedence{
 		token.EQ:       EQUALS,
+		token.NEQ:      EQUALS,
 		token.LT:       LTGT,
 		token.GT:       LTGT,
 		token.PLUS:     SUM,
