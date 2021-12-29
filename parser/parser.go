@@ -194,20 +194,25 @@ func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 		return nil
 	}
 
-	exp := prefix()
+	leftExp := prefix()
 
+	// * continue extending the expression with infix operators, until you find:
+	// * - a semicolon ";",
+	// * - the end of the file "EOF",
+	// * - a token that has a lower-or-equal precedence (does not bind stronger than the current token), or
+	// * - a token that is not an infix token
 	for !p.peekTokenIs(token.SEMICOLON) && !p.peekTokenIs(token.EOF) && precedence < p.peekPrecedence() {
 		infix, ok := p.infixParseFns[p.peekToken.Type]
 		if !ok {
-			return exp
+			return leftExp
 		}
 
 		p.nextToken()
 
-		exp = infix(exp)
+		leftExp = infix(leftExp)
 	}
 
-	return exp
+	return leftExp
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
