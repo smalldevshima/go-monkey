@@ -255,6 +255,10 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if exp := p.parseIfExpression(); exp != nil {
 			return exp
 		}
+	case token.FUNCTION:
+		if exp := p.parseFunctionLiteral(); exp != nil {
+			return exp
+		}
 	case token.COMMA:
 		// todo
 	}
@@ -281,6 +285,51 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 func (p *Parser) parseBooleanLiteral() ast.Expression {
 	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	fnLit := &ast.FunctionLiteral{Token: p.currentToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	fnLit.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	fnLit.Body = p.parseBlockStatement()
+	return fnLit
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	params := []*ast.Identifier{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return params
+	}
+
+	for !p.currentTokenIs(token.RPAREN) {
+		if !p.peekTokenIs(token.IDENTIFIER) {
+			return nil
+		}
+
+		p.nextToken()
+		param := p.parseIdentifier().(*ast.Identifier)
+		params = append(params, param)
+
+		if !p.peekTokenIs(token.RPAREN) && !p.peekTokenIs(token.COMMA) {
+			msg := fmt.Sprintf("unexpected token of type %q with literal %q, expected token of type %q or %q", p.peekToken.Type, p.peekToken.Literal, token.RPAREN, token.COMMA)
+			p.errors = append(p.errors, msg)
+			return []*ast.Identifier{}
+		}
+		p.nextToken()
+	}
+
+	return params
 }
 
 // parseUnaryOperator creates an ast.PrefixExpression from the operators '!' and '-'
