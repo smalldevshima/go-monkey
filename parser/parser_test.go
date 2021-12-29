@@ -50,30 +50,53 @@ func TestLetStatements(t *testing.T) {
 }
 
 func TestReturnStatements(t *testing.T) {
-	input := `
-		return 5;
-		return 10;
-		return add(5, 10);
-		return x + z;
-		`
-
-	l := lexer.New(input)
-	p := New(l)
-
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-	if len(program.Statements) != 4 {
-		t.Fatalf("program.Statements does not contain 4 statements. got=%d", len(program.Statements))
+	returnTests := []struct {
+		name              string
+		input             string
+		returnValueString string
+	}{
+		{
+			"integerLiteral",
+			"return 5;",
+			"5",
+		},
+		{
+			"booleanLiteral",
+			"return true;",
+			"true",
+		},
+		{
+			"infixExpression",
+			"return x + z;",
+			"(x + z)",
+		},
+		{
+			"functionCall",
+			"return add(5, 10);",
+			"add(5, 10)",
+		},
 	}
+	for _, test := range returnTests {
+		t.Run("return/"+test.name, func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
 
-	for _, stmt := range program.Statements {
-		returnStmt, ok := stmt.(*ast.ReturnStatement)
-		if !ok {
-			t.Errorf("smt not *ast.ReturnStatement. got=%T", stmt)
-		}
-		if returnStmt.TokenLiteral() != "return" {
-			t.Errorf("returnStmt.TokenLiteral not 'return', got=%q", returnStmt.TokenLiteral())
-		}
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d: %s", len(program.Statements), program.Statements)
+			}
+			stmt, ok := program.Statements[0].(*ast.ReturnStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ReturnStatement. got=%T", program.Statements[0])
+			}
+			if stmt.TokenLiteral() != "return" {
+				tt.Errorf("stmt.TokenLiteral is not 'return', got=%q", stmt.TokenLiteral())
+			}
+			if stmt.ReturnValue.String() != test.returnValueString {
+				tt.Fatalf("stmt.ReturnValue.String is wrong.\nexpected:\n\t%s\ngot:\n\t%s", test.returnValueString, stmt.ReturnValue.String())
+			}
+		})
 	}
 }
 
@@ -393,6 +416,11 @@ func TestFunctionLiteral(t *testing.T) {
 			`fn(a,b,c) {}`,
 			[]string{"a", "b", "c"},
 			0,
+		},
+		{
+			`fn(x) { x; }`,
+			[]string{"x"},
+			1,
 		},
 	}
 	for index, test := range fnTests {
