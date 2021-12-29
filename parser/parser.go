@@ -323,6 +323,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	exp.Then = p.parseBlockStatement()
 
+	// * check if there is an ELSE block
 	if !p.peekTokenIs(token.ELSE) {
 		return exp
 	}
