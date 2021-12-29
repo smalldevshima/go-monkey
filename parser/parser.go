@@ -162,6 +162,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precedence uint) ast.Expression {
 	prefix, ok := p.prefixParseFns[p.currentToken.Type]
 	if !ok {
+		p.noPrefixParseFnError(p.currentToken.Type)
 		return nil
 	}
 
@@ -223,4 +224,9 @@ func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
+}
+
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	p.errors = append(p.errors, msg)
 }
