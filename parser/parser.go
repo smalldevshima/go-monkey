@@ -24,6 +24,12 @@ const (
 )
 
 var (
+	// prefixTokens is the list of all tokens that are parsed in prefix position
+	prefixTokens = []token.TokenType{token.BANG, token.DASH}
+	// infixTokens is the list of all tokens that are parsed in infix position
+	infixTokens = []token.TokenType{token.EQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
+
+	// precedences maps every infix operator to its corresponding precedence value
 	precedences = map[token.TokenType]Precedence{
 		token.EQ:       EQUALS,
 		token.LT:       LTGT,
@@ -69,8 +75,13 @@ func New(l *lexer.Lexer) *Parser {
 	// register expression parsing fns
 	p.registerPrefix(token.IDENTIFIER, p.parseIdentifier)
 	p.registerPrefix(token.INTEGER, p.parseIntegerLiteral)
-	p.registerPrefix(token.BANG, p.parsePrefixExpression)
-	p.registerPrefix(token.DASH, p.parsePrefixExpression)
+
+	for _, tok := range prefixTokens {
+		p.registerPrefix(tok, p.parsePrefixExpression)
+	}
+	for _, tok := range infixTokens {
+		p.registerInfix(tok, p.parseInfixExpression)
+	}
 
 	// Read two tokens, so currentToken and peekToken are both set
 	p.nextToken()
