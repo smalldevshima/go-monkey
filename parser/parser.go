@@ -227,26 +227,6 @@ func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 	return leftExp
 }
 
-func (p *Parser) parseIdentifier() ast.Expression {
-	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
-}
-
-func (p *Parser) parseIntegerLiteral() ast.Expression {
-	value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
-	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as int64", p.currentToken.Literal)
-		p.errors = append(p.errors, msg)
-		return nil
-	}
-
-	lit := &ast.IntegerLiteral{Token: p.currentToken, Value: value}
-	return lit
-}
-
-func (p *Parser) parseBooleanLiteral() ast.Expression {
-	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
-}
-
 // parsePrefixExpression handles the creation of an ast.Expression at the current token
 // by calling the corresponding parsing method.
 func (p *Parser) parsePrefixExpression() ast.Expression {
@@ -281,6 +261,26 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
 	p.errors = append(p.errors, msg)
 	return nil
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as int64", p.currentToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit := &ast.IntegerLiteral{Token: p.currentToken, Value: value}
+	return lit
+}
+
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
 }
 
 // parseUnaryOperator creates an ast.PrefixExpression from the operators '!' and '-'
