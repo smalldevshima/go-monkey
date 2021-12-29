@@ -6,6 +6,7 @@ import (
 
 	"github.com/smalldevshima/go-monkey/ast"
 	"github.com/smalldevshima/go-monkey/lexer"
+	"github.com/smalldevshima/go-monkey/token"
 )
 
 func TestLetStatements(t *testing.T) {
@@ -130,7 +131,59 @@ func TestIntergerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestPrefixExpression(t *testing.T) {
+	prefixTests := []struct {
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{"!5", "!", 5},
+		{"-15", "-", 15},
+	}
+
+	for index, test := range prefixTests {
+		t.Run("prefix"+fmt.Sprint(index), func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+
+			exp, ok := stmt.Expression.(*ast.PrefixExpression)
+			if !ok {
+				t.Fatalf("stmt.Expression is not *ast.PrefixExpression. got=%T", stmt.Expression)
+			}
+			if exp.Operator != test.operator {
+				t.Fatalf("exp.Operator is not %q. got=%q", test.operator, exp.Operator)
+			}
+			checkIntegerLiteral(tt, exp.Right, test.integerValue)
+		})
+	}
+}
+
 /// helpers
+
+func checkParserErrors(t *testing.T, p *Parser) {
+	t.Helper()
+	errors := p.Errors()
+	if len(errors) == 0 {
+		return
+	}
+
+	t.Errorf("parser has %d errors:", len(errors))
+	for i, msg := range errors {
+		t.Errorf("%2d: %s", i, msg)
+	}
+	t.FailNow()
+}
 
 func checkLetStatement(t *testing.T, s ast.Statement, name string) {
 	t.Helper()
@@ -152,16 +205,16 @@ func checkLetStatement(t *testing.T, s ast.Statement, name string) {
 	}
 }
 
-func checkParserErrors(t *testing.T, p *Parser) {
+func checkIntegerLiteral(t *testing.T, exp ast.Expression, value int64) {
 	t.Helper()
-	errors := p.Errors()
-	if len(errors) == 0 {
-		return
+	intLit, ok := exp.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("exp is not *ast.IntegerLiteral. got=%T", exp)
 	}
-
-	t.Errorf("parser has %d errors:", len(errors))
-	for i, msg := range errors {
-		t.Errorf("%2d: %s", i, msg)
+	if intLit.Token.Type != token.INTEGER {
+		t.Errorf("intLit.Token.Type is not %q. got=%q", token.INTEGER, intLit.Token.Type)
 	}
-	t.FailNow()
+	if intLit.Value != value {
+		t.Errorf("intLit.Value is not %d. got=%d", value, intLit.Value)
+	}
 }
