@@ -89,7 +89,7 @@ func (ls *LetStatement) String() string {
 	if ls.Value != nil {
 		value = ls.Value.String()
 	}
-	return fmt.Sprintf("%s %s = %s;", ls.TokenLiteral(), ls.Name.String(), value)
+	return fmt.Sprintf("%s %s = %s;", ls.TokenLiteral(), ls.Name, value)
 }
 
 type ReturnStatement struct {
