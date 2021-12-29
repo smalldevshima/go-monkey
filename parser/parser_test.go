@@ -300,6 +300,79 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
+func TestIfExpression(t *testing.T) {
+	ifTests := []struct {
+		input     string
+		condLeft  interface{}
+		condOp    string
+		condRight interface{}
+		thenName  string
+		// leave empty for no else-branch
+		otherwiseName string
+	}{
+		{
+			`if (x < y) { a } else { b }`,
+			"x", "<", "y",
+			"a", "b",
+		},
+		{
+			`if (previous == current) { current }`,
+			"previous", "==", "current",
+			"current", "",
+		},
+	}
+
+	for index, test := range ifTests {
+		t.Run("if-else/"+fmt.Sprint(index), func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not contain 1 statement. got=%d: %s", len(program.Statements), program.Statements)
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+
+			exp, ok := stmt.Expression.(*ast.IfExpression)
+			if !ok {
+				tt.Fatalf("stmt.Expression is not *ast.IfExpression. got=%T", stmt.Expression)
+			}
+
+			checkInfixExpression(tt, exp.Condition, test.condLeft, test.condOp, test.condRight)
+
+			if len(exp.Then.Statements) != 1 {
+				tt.Fatalf("then-block does not contain 1 statement. got=%d: %s", len(exp.Then.Statements), exp.Then.Statements)
+			}
+			then, ok := exp.Then.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("exp.Then.Statements[0] is not *ast.ExpressionStatement. got=%T", exp.Then.Statements[0])
+			}
+			checkLiteralExpression(tt, then.Expression, test.thenName)
+
+			if test.otherwiseName == "" {
+				return
+			}
+
+			if exp.Otherwise == nil {
+				tt.Fatalf("else-block is nil")
+			}
+			if len(exp.Otherwise.Statements) != 1 {
+				tt.Fatalf("else-block does not contain 1 statement. got=%d: %s", len(exp.Otherwise.Statements), exp.Otherwise.Statements)
+			}
+			otherwise, ok := exp.Otherwise.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("exp.Otherwise.Statements[0] is not *ast.ExpressionStatement. got=%T", exp.Otherwise.Statements[0])
+			}
+
+			checkLiteralExpression(tt, otherwise.Expression, test.otherwiseName)
+		})
+	}
+}
+
 func TestFunctionCallExpression(t *testing.T) {
 	input := `add(5, 10, 20)`
 
