@@ -108,6 +108,24 @@ func (rs *ReturnStatement) String() string {
 	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), value)
 }
 
+type BlockStatement struct {
+	// the token.LBRACE token
+	Token      token.Token
+	Statements []Statement
+}
+
+func (bs *BlockStatement) statementNode()       {}
+func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BlockStatement) String() string {
+	var out strings.Builder
+
+	for _, s := range bs.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
+}
+
 type Identifier struct {
 	// the token.IDENTIFIER token
 	Token token.Token
@@ -162,4 +180,32 @@ func (ie *InfixExpression) expressionNode()      {}
 func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie *InfixExpression) String() string {
 	return fmt.Sprintf("(%s %s %s)", ie.Left, ie.Operator, ie.Right)
+}
+
+type IfExpression struct {
+	// the token.IF token
+	Token     token.Token
+	Condition Expression
+	// The if-branch of the if-else expression
+	Then *BlockStatement
+	// The optional else-branch of the if-else expression, possibly nil
+	Otherwise *BlockStatement
+}
+
+func (ie *IfExpression) expressionNode()      {}
+func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IfExpression) String() string {
+	condition := emptyExpressionValue
+	then := ""
+	otherwise := ""
+	if ie.Condition != nil {
+		condition = ie.Condition.String()
+	}
+	if ie.Then != nil {
+		then = ie.Then.String()
+	}
+	if ie.Otherwise != nil {
+		otherwise = " " + ie.Otherwise.String()
+	}
+	return fmt.Sprintf("if %s %s%s", condition, then, otherwise)
 }
