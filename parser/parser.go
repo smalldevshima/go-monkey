@@ -46,7 +46,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 
-	for p.currentToken.Type != token.EOF {
+	for !p.currentTokenIs(token.EOF) {
 		stmt := p.parseStatement()
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
@@ -83,8 +83,8 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	// todo: currently expressions are skipped until a semicolon is found
-	for p.currentToken.Type != token.SEMICOLON {
-		if p.currentToken.Type == token.EOF {
+	for !p.currentTokenIs(token.SEMICOLON) {
+		if p.currentTokenIs(token.EOF) {
 			return nil
 		}
 		p.nextToken()
@@ -97,10 +97,18 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 // If they are the same, it advances the tokens and returns true.
 // Otherwise it leaves the tokens as is and returns false.
 func (p *Parser) expectPeek(t token.TokenType) bool {
-	if p.peekToken.Type == t {
+	if p.peekTokenIs(t) {
 		p.nextToken()
 		return true
 	}
 	parseErrorLog.Printf("unexpected token of type %q: %q, expected token of type %q", p.peekToken.Type, p.peekToken.Literal, t)
 	return false
+}
+
+func (p *Parser) currentTokenIs(t token.TokenType) bool {
+	return p.currentToken.Type == t
+}
+
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return p.peekToken.Type == t
 }
