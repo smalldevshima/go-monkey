@@ -140,3 +140,16 @@ func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
 func (pe *PrefixExpression) String() string {
 	return fmt.Sprintf("(%s%s)", pe.Operator, pe.Right)
 }
+
+type InfixExpression struct {
+	// the token of the operator
+	Token       token.Token
+	Left, Right Expression
+	Operator    string
+}
+
+func (ie *InfixExpression) expressionNode()      {}
+func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *InfixExpression) String() string {
+	return fmt.Sprintf("(%s %s %s)", ie.Left, ie.Operator, ie.Right)
+}
