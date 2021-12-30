@@ -12,6 +12,9 @@ var (
 
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
+
+	// FALSY_VALUES is a list of all object values considered falsy in Monkey
+	FALSY_VALUES = []object.Object{NULL, FALSE}
 )
 
 // Functions
@@ -20,6 +23,8 @@ func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	// * Statements:
 	case *ast.Program:
+		return evalStatements(node.Statements)
+	case *ast.BlockStatement:
 		return evalStatements(node.Statements)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
@@ -38,6 +43,11 @@ func Eval(node ast.Node) object.Object {
 		left := Eval(node.Left)
 		right := Eval(node.Right)
 		return evalInfixExpression(node.Operator, left, right)
+
+	// * Control flow expressions:
+	case *ast.IfExpression:
+		return evalIfExpression(node)
+
 	}
 
 	return nil
@@ -69,23 +79,12 @@ func evalPrefixExpression(operator string, operand object.Object) object.Object 
 	return NULL
 }
 
-// evalBangOperatorExpression checks all types of falsy values explicitly.
-// Otherwise it assumes that operand is truthy and returns the false-object.
+// evalBangOperatorExpression returns the opposite object of the isTruthy(operand) result
 func evalBangOperatorExpression(operand object.Object) object.Object {
-	switch operand := operand.(type) {
-	case *object.Null:
-		return TRUE
-	case *object.Boolean:
-		if operand == FALSE {
-			return TRUE
-		}
-	case *object.Integer:
-		if operand.Value == 0 {
-			return TRUE
-		}
+	if isTruthy(operand) {
+		return FALSE
 	}
-
-	return FALSE
+	return TRUE
 }
 
 func evalDashOperatorExpression(operand object.Object) object.Object {
@@ -141,4 +140,27 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	}
 
 	return &object.Integer{Value: newInt}
+}
+
+func evalIfExpression(ie *ast.IfExpression) object.Object {
+	condition := Eval(ie.Condition)
+
+	if isTruthy(condition) {
+		return Eval(ie.Then)
+	} else if ie.Otherwise != nil {
+		return Eval(ie.Otherwise)
+	}
+
+	return NULL
+}
+
+// isTruthy defines which values are truthy in the Monkey language
+func isTruthy(obj object.Object) bool {
+	for _, falsyVal := range FALSY_VALUES {
+		if falsyVal == obj {
+			return false
+		}
+	}
+
+	return true
 }
