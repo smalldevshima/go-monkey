@@ -119,9 +119,11 @@ func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
 func (bs *BlockStatement) String() string {
 	var out strings.Builder
 
+	out.WriteString("{ ")
 	for _, s := range bs.Statements {
 		out.WriteString(s.String())
 	}
+	out.WriteString(" }")
 
 	return out.String()
 }
@@ -241,7 +243,7 @@ func (ie *IfExpression) String() string {
 		then = ie.Then.String()
 	}
 	if ie.Otherwise != nil {
-		otherwise = " " + ie.Otherwise.String()
+		otherwise = " else " + ie.Otherwise.String()
 	}
-	return fmt.Sprintf("if %s %s%s", condition, then, otherwise)
+	return fmt.Sprintf("if (%s) %s%s", condition, then, otherwise)
 }
