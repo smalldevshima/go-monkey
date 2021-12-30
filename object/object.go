@@ -4,16 +4,19 @@ import "fmt"
 
 /// Constants / Variables
 
+const typeDelim = "@"
+
 // Object types
-const (
-	O_NULL ObjectType = "O:null"
 
-	O_INTEGER ObjectType = "O:int"
-	O_BOOLEAN ObjectType = "O:bool"
+var (
+	O_NULL ObjectType = typeString("null")
 
-	O_RETURN_VALUE ObjectType = "O:return_value"
+	O_INTEGER ObjectType = typeString("int")
+	O_BOOLEAN ObjectType = typeString("bool")
 
-	O_ERROR = "O:error"
+	O_RETURN_VALUE ObjectType = typeString("return_value")
+
+	O_ERROR = typeString("error")
 )
 
 // Object string formats
@@ -27,6 +30,12 @@ const (
 
 	F_ERROR = "ERROR: %s"
 )
+
+/// Functions
+
+func typeString(typ string) ObjectType {
+	return ObjectType(fmt.Sprintf("%s%s%s", typeDelim, typ, typeDelim))
+}
 
 /// Types
 
