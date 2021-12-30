@@ -6,10 +6,12 @@ import "fmt"
 
 // Object types
 const (
-	O_NULL = "T:null"
+	O_NULL ObjectType = "O:null"
 
-	O_INTEGER = "T:int"
-	O_BOOLEAN = "T:bool"
+	O_INTEGER ObjectType = "O:int"
+	O_BOOLEAN ObjectType = "O:bool"
+
+	O_RETURN_VALUE ObjectType = "O:return_value"
 )
 
 // Object string formats
@@ -18,6 +20,8 @@ const (
 
 	F_BOOLEAN = "%v"
 	F_INTEGER = "%d"
+
+	F_RETURN_VALUE = "%v"
 )
 
 /// Types
@@ -50,3 +54,10 @@ type Null struct{}
 
 func (n *Null) Type() ObjectType { return O_NULL }
 func (n *Null) Inspect() string  { return F_NULL }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rv *ReturnValue) Type() ObjectType { return O_RETURN_VALUE }
+func (rv *ReturnValue) Inspect() string  { return fmt.Sprintf(F_RETURN_VALUE, rv.Value.Inspect()) }
