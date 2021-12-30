@@ -482,16 +482,89 @@ func TestFunctionParameterParsing(t *testing.T) {
 }
 
 func TestFunctionCallExpression(t *testing.T) {
-	input := `add(5, 10, 20)`
-
-	l := lexer.New(input)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not have 1 statement. got=%d: %s", len(program.Statements), program.Statements)
+	callTests := []struct {
+		name      string
+		input     string
+		function  string
+		arguments []string
+	}{
+		{
+			"identifier/no-arg",
+			"next()",
+			"next",
+			[]string{},
+		},
+		{
+			"identifier/one-arg",
+			"incr(3 + 3 * 2)",
+			"incr",
+			[]string{"(3 + (3 * 2))"},
+		},
+		{
+			"identifier/mutli-arg",
+			"add(5, 30 / 5, 20)",
+			"add",
+			[]string{"5", "(30 / 5)", "20"},
+		},
+		{
+			"literal/no-arg",
+			"fn(){ return 2 + 2 }()",
+			"fn () { return (2 + 2); }",
+			[]string{},
+		},
+		{
+			"literal/one-arg",
+			"fn(x){ x * 2 }(10)",
+			"fn (x) { (x * 2); }",
+			[]string{"10"},
+		},
+		{
+			"literal/multi-arg",
+			"fn(a,b,c){ a<b == a<c } (5*2,5,20)",
+			"fn (a, b, c) { ((a < b) == (a < c)); }",
+			[]string{"(5 * 2)", "5", "20"},
+		},
+		{
+			"if-else/no-arg",
+			"if(neg){incr}else{decr}()",
+			"if (neg) { incr; } else { decr; }",
+			[]string{},
+		},
 	}
-	// todo
+	for _, test := range callTests {
+		t.Run("call/"+test.name, func(tt *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(tt, p)
+			if len(program.Statements) != 1 {
+				tt.Fatalf("program.Statements does not have 1 statement. got=%d: %q", len(program.Statements), program.Statements)
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				tt.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+
+			exp, ok := stmt.Expression.(*ast.CallExpression)
+			if !ok {
+				tt.Fatalf("stmt.Expression is not *ast.CallExpression. got=%T", stmt.Expression)
+			}
+
+			if exp.Function.String() != test.function {
+				tt.Errorf("exp.Function.String is wrong.\nexpected:\n\t%s\ngot:\n\t%s", test.function, exp.Function)
+			}
+
+			if len(exp.Arguments) != len(test.arguments) {
+				tt.Fatalf("exp.Arguments does not contain %d arguments. got=%d: %q", len(test.arguments), len(exp.Arguments), exp.Arguments)
+			}
+			for index, arg := range exp.Arguments {
+				if arg.String() != test.arguments[index] {
+					tt.Errorf("exp.Arguments[%d] is wrong.\nexpected:\n\t%s\ngot:\n\t%s", index, test.arguments[index], arg)
+				}
+			}
+		})
+	}
 }
 
 /// helpers
