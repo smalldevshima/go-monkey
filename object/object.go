@@ -24,6 +24,8 @@ const (
 	F_INTEGER = "%d"
 
 	F_RETURN_VALUE = "%v"
+
+	F_ERROR = "ERROR: %s"
 )
 
 /// Types
@@ -69,4 +71,4 @@ type Error struct {
 }
 
 func (e *Error) Type() ObjectType { return O_ERROR }
-func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+func (e *Error) Inspect() string  { return fmt.Sprintf(F_ERROR, e.Message) }
