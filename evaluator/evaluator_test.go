@@ -29,7 +29,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 		{"literal/division", "30 / 3", 10},
 
 		{"literal/grouped/simple", "(1 + 2) * 5", 15},
-		{"literal/grouped/complex", "3 + (3 - (1 + 2) * 5 - (-10 / (90 - 88)))", 20},
+		{"literal/grouped/complex", "3 + (3 - (1 + 2) * 5 - (-10 / (90 - 88)))", -4},
 	}
 
 	for _, test := range tests {
@@ -90,7 +90,7 @@ func checkIntegerObject(t *testing.T, obj object.Object, value int64) {
 	}
 
 	if integer.Value != value {
-		t.Errorf("integer.Value is wrong. expected=%q, got=%q", value, integer.Value)
+		t.Errorf("integer.Value is wrong. expected=%d, got=%d", value, integer.Value)
 	}
 	if integer.Inspect() != fmt.Sprintf(object.F_INTEGER, value) {
 		t.Errorf("integer.Inspect is wrong. expected=%q, got=%q", fmt.Sprintf(object.F_INTEGER, value), integer.Inspect())
