@@ -24,14 +24,25 @@ func Eval(node ast.Node) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
 
-	// * Expressions:
+	// * Literal expressions:
 	case *ast.BooleanLiteral:
 		return nativeBooleanToObject(node.Value)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+
+		// * Operator expressions:
+	case *ast.PrefixExpression:
+		right := Eval(node.Right)
+		return evalPrefixExpression(node.Operator, right)
 	}
 
 	return nil
+}
+func nativeBooleanToObject(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	}
+	return FALSE
 }
 
 func evalStatements(statements []ast.Statement) object.Object {
@@ -44,9 +55,29 @@ func evalStatements(statements []ast.Statement) object.Object {
 	return result
 }
 
-func nativeBooleanToObject(input bool) *object.Boolean {
-	if input {
-		return TRUE
+func evalPrefixExpression(operator string, operand object.Object) object.Object {
+	switch operator {
+	case "!":
+		return evalBangOperatorExpression(operand)
 	}
+	return NULL
+}
+
+// evalBangOperatorExpression checks all types of falsy values explicitly.
+// Otherwise it assumes that operand is truthy and returns the false-object.
+func evalBangOperatorExpression(operand object.Object) object.Object {
+	switch operand := operand.(type) {
+	case *object.Null:
+		return TRUE
+	case *object.Boolean:
+		if operand == FALSE {
+			return TRUE
+		}
+	case *object.Integer:
+		if operand.Value == 0 {
+			return TRUE
+		}
+	}
+
 	return FALSE
 }
