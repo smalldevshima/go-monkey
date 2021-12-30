@@ -98,20 +98,20 @@ func TestEvalBooleanExpression(t *testing.T) {
 		// {"neq/literal/bool-int/f-negative", "false != -5", true},
 
 		// less-then infix operator
-		{"less/literal/booleans/tt", "true < true", false},
-		{"less/literal/booleans/tf", "true < false", false},
-		{"less/literal/booleans/ft", "false < true", true},
-		{"less/literal/booleans/ff", "false < false", false},
+		// {"less/literal/booleans/tt", "true < true", false},
+		// {"less/literal/booleans/tf", "true < false", false},
+		// {"less/literal/booleans/ft", "false < true", true},
+		// {"less/literal/booleans/ff", "false < false", false},
 
 		{"less/literal/integers/same", "0 < 0", false},
 		{"less/literal/integers/lesser", "0 < 10", true},
 		{"less/literal/integers/greater", "10 < 0", false},
 
 		// greater-then infix operator
-		{"greater/literal/booleans/tt", "true > true", false},
-		{"greater/literal/booleans/tf", "true > false", true},
-		{"greater/literal/booleans/ft", "false > true", false},
-		{"greater/literal/booleans/ff", "false > false", false},
+		// {"greater/literal/booleans/tt", "true > true", false},
+		// {"greater/literal/booleans/tf", "true > false", true},
+		// {"greater/literal/booleans/ft", "false > true", false},
+		// {"greater/literal/booleans/ff", "false > false", false},
 
 		{"greater/literal/integers/same", "0 > 0", false},
 		{"greater/literal/integers/lesser", "0 > 10", false},
