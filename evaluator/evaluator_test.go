@@ -126,6 +126,34 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestIfElseExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected interface{}
+	}{
+		{"no-else/boolean", "if (true) {10==10}", true},
+		{"no-else/integer", "if (true) {10}", 10},
+		{"no-else/null", "if (false) {10}", nil},
+
+		{"if-else/boolean", "if (false) {10} else {10!=5}", false},
+		{"if-else/integer", "if (true) {10==10} else {5}", 5},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			if integer, ok := test.expected.(int); ok {
+				checkIntegerObject(t, evaluated, int64(integer))
+			} else if boolean, ok := test.expected.(bool); ok {
+				checkBooleanObject(t, evaluated, boolean)
+			} else {
+				checkNullObject(t, evaluated)
+			}
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
@@ -163,5 +191,17 @@ func checkBooleanObject(t *testing.T, obj object.Object, value bool) {
 	}
 	if boolean.Inspect() != fmt.Sprintf(object.F_BOOLEAN, value) {
 		t.Errorf("boolean.Inspect is wrong. expected=%v, got=%v", fmt.Sprintf(object.F_BOOLEAN, value), boolean.Inspect())
+	}
+}
+
+func checkNullObject(t *testing.T, obj object.Object) {
+	t.Helper()
+	null, ok := obj.(*object.Null)
+	if !ok {
+		t.Fatalf("obj is not *object.Null. got=%T: (%+v)", obj, obj)
+	}
+
+	if null.Inspect() != object.F_NULL {
+		t.Errorf("null.Inspect is wrong. expected=%v, got=%v", object.F_NULL, null.Inspect())
 	}
 }
