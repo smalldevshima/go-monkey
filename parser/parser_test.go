@@ -508,20 +508,20 @@ func TestFunctionCallExpression(t *testing.T) {
 		},
 		{
 			"literal/no-arg",
-			"fn(){ return 2 + 2 }()",
-			"fn () { return (2 + 2); }",
+			"fn(){ return 2 + 2; }()",
+			"fn() { return (2 + 2); }",
 			[]string{},
 		},
 		{
 			"literal/one-arg",
 			"fn(x){ x * 2 }(10)",
-			"fn (x) { (x * 2); }",
+			"fn(x) { (x * 2); }",
 			[]string{"10"},
 		},
 		{
 			"literal/multi-arg",
 			"fn(a,b,c){ a<b == a<c } (5*2,5,20)",
-			"fn (a, b, c) { ((a < b) == (a < c)); }",
+			"fn(a, b, c) { ((a < b) == (a < c)); }",
 			[]string{"(5 * 2)", "5", "20"},
 		},
 		{
