@@ -5,6 +5,15 @@ import (
 	"github.com/smalldevshima/go-monkey/object"
 )
 
+// Constants / Variables
+
+var (
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
+)
+
+// Functions
+
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	// * Statements:
@@ -15,7 +24,7 @@ func Eval(node ast.Node) object.Object {
 
 	// * Expressions:
 	case *ast.BooleanLiteral:
-		return &object.Boolean{Value: node.Value}
+		return nativeBooleanToObject(node.Value)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	}
@@ -31,4 +40,11 @@ func evalStatements(statements []ast.Statement) object.Object {
 	}
 
 	return result
+}
+
+func nativeBooleanToObject(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	}
+	return FALSE
 }
