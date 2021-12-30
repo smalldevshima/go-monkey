@@ -198,6 +198,85 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		message string
+	}{
+		{
+			"operator/type/mismatch/int-bool",
+			"5 + true;",
+			"type mismatch: @int@ + @bool@",
+		},
+		{
+			"operator/type/mismatch/bool-int",
+			"true - 4;",
+			"type mismatch: @bool@ - @int@",
+		},
+
+		{
+			"operator/type/unknown/negate-bool",
+			"-true;",
+			"unknown operator: -@bool@",
+		},
+		{
+			"operator/type/unknown/sum-bool",
+			"-true;",
+			"unknown operator: @bool@ + @bool@",
+		},
+
+		{
+			"block/exit-early",
+			"-true; false; 1234;",
+			"unknown operator: -@bool@",
+		},
+		{
+			"block/if-else/exit-early",
+			`if (true) {
+				-true;
+				10;
+			}`,
+			"unknown operator: -@bool@",
+		},
+		{
+			"block/function-call/exit-early",
+			`fn () {
+				-false;
+				return 30;
+			} ()`,
+			"unknown operator: -@bool@",
+		},
+		{
+			"block/nested/if-else/exit-early",
+			`if (true) {
+				if (true) {
+					true * true;
+				}
+				5432;
+			}`,
+			"unknown operator: @bool@ * @bool@",
+		},
+		{
+			"block/nested/function-call/exit-early",
+			`fn () {
+				fn () {
+					true / true;
+				} ()
+				return 5432;
+			} ()`,
+			"unknown operator: @bool@ / @bool@",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			checkErrorObject(t, evaluated, test.message)
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
@@ -247,5 +326,20 @@ func checkNullObject(t *testing.T, obj object.Object) {
 
 	if null.Inspect() != object.F_NULL {
 		t.Errorf("null.Inspect is wrong. expected=%v, got=%v", object.F_NULL, null.Inspect())
+	}
+}
+
+func checkErrorObject(t *testing.T, obj object.Object, message string) {
+	t.Helper()
+	err, ok := obj.(*object.Error)
+	if !ok {
+		t.Fatalf("obj is not *object.Error. got=%T: (%+v)", obj, obj)
+	}
+
+	if err.Message != message {
+		t.Fatalf("err.Message is wrong.\nexpected:\n\t%s\ngot:\n\t%s", message, err.Message)
+	}
+	if err.Inspect() != fmt.Sprintf(object.F_ERROR, message) {
+		t.Fatalf("err.Inspect is wrong.\nexpected:\n\t%s\ngot:\n\t%s", fmt.Sprintf(object.F_ERROR, message), err.Inspect())
 	}
 }
