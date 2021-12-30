@@ -154,6 +154,26 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestReturnStatements(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int64
+	}{
+		{"only-return/integer", "return 10;", 10},
+		{"block/first-pos/integer", "return 9; 5;", 9},
+		{"block/middle-pos", "7; return 1; 34;", 1},
+		{"block/last-pos", "23; 43; return -24;", -24},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			checkIntegerObject(t, evaluated, test.expected)
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
