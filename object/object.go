@@ -12,6 +12,8 @@ const (
 	O_BOOLEAN ObjectType = "O:bool"
 
 	O_RETURN_VALUE ObjectType = "O:return_value"
+
+	O_ERROR = "O:error"
 )
 
 // Object string formats
@@ -61,3 +63,10 @@ type ReturnValue struct {
 
 func (rv *ReturnValue) Type() ObjectType { return O_RETURN_VALUE }
 func (rv *ReturnValue) Inspect() string  { return fmt.Sprintf(F_RETURN_VALUE, rv.Value.Inspect()) }
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Type() ObjectType { return O_ERROR }
+func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
