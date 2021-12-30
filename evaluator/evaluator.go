@@ -120,6 +120,14 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		newInt = leftInt * rightInt
 	case "/":
 		newInt = leftInt / rightInt
+	case "==":
+		return nativeBooleanToObject(leftInt == rightInt)
+	case "!=":
+		return nativeBooleanToObject(leftInt != rightInt)
+	case "<":
+		return nativeBooleanToObject(leftInt < rightInt)
+	case ">":
+		return nativeBooleanToObject(leftInt > rightInt)
 	default:
 		return NULL
 	}
