@@ -53,15 +53,15 @@ func TestEvalBooleanExpression(t *testing.T) {
 		// * bang prefix operator
 		{"bang/literal/true", "!true", false},
 		{"bang/literal/false", "!false", true},
-		{"bang/literal/zero-int", "!0", true},
-		{"bang/literal/neg-zero-int", "!-0", true},
+		{"bang/literal/zero-int", "!0", false},
+		{"bang/literal/neg-zero-int", "!-0", false},
 		{"bang/literal/positive-int", "!5", false},
 		{"bang/literal/negative-int", "!-5", false},
 
 		{"bang/twice/literal/true", "!!true", true},
 		{"bang/twice/literal/false", "!!false", false},
-		{"bang/twice/literal/zero-int", "!!0", false},
-		{"bang/twice/literal/neg-zero-int", "!!-0", false},
+		{"bang/twice/literal/zero-int", "!!0", true},
+		{"bang/twice/literal/neg-zero-int", "!!-0", true},
 		{"bang/twice/literal/positive-int", "!!5", true},
 		{"bang/twice/literal/negative-int", "!!-5", true},
 
@@ -136,8 +136,8 @@ func TestIfElseExpression(t *testing.T) {
 		{"no-else/integer", "if (true) {10}", 10},
 		{"no-else/null", "if (false) {10}", nil},
 
-		{"if-else/boolean", "if (false) {10} else {10!=5}", false},
-		{"if-else/integer", "if (true) {10==10} else {5}", 5},
+		{"if-else/boolean", "if (false) {10} else {10!=5}", true},
+		{"if-else/integer", "if (false) {10==10} else {5}", 5},
 	}
 
 	for _, test := range tests {
