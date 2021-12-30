@@ -164,6 +164,30 @@ func TestReturnStatements(t *testing.T) {
 		{"block/first-pos/integer", "return 9; 5;", 9},
 		{"block/middle-pos", "7; return 1; 34;", 1},
 		{"block/last-pos", "23; 43; return -24;", -24},
+
+		{"block/if-else", "if (true) { return 100; } else { return 200; }; 300;", 100},
+		{"block/function-call", "fn() { return 213; } ()", 213},
+
+		{
+			"block/nested/if-else",
+			`if (true) {
+				if (true) {
+					return 456;
+				}
+				return 123;
+			}`,
+			456,
+		},
+		{
+			"block/nested/function-call",
+			`fn() {
+				fn () {
+					return 789;
+				} ();
+				return 987
+			} ()`,
+			987,
+		},
 	}
 
 	for _, test := range tests {
