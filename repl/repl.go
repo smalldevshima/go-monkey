@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/smalldevshima/go-monkey/evaluator"
 	"github.com/smalldevshima/go-monkey/lexer"
 	"github.com/smalldevshima/go-monkey/parser"
 )
@@ -33,7 +34,12 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		writer.WriteString(program.String())
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			writer.WriteString(evaluated.Inspect())
+		} else {
+			writer.WriteString("I cannot evaluate that, sorry!")
+		}
 		writer.WriteString("\n")
 	}
 }
