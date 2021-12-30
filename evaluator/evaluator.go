@@ -30,10 +30,14 @@ func Eval(node ast.Node) object.Object {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 
-		// * Operator expressions:
+	// * Operator expressions:
 	case *ast.PrefixExpression:
+		operand := Eval(node.Right)
+		return evalPrefixExpression(node.Operator, operand)
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
 		right := Eval(node.Right)
-		return evalPrefixExpression(node.Operator, right)
+		return evalInfixExpression(node.Operator, left, right)
 	}
 
 	return nil
@@ -91,4 +95,34 @@ func evalDashOperatorExpression(operand object.Object) object.Object {
 
 	value := operand.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+func evalInfixExpression(operator string, left, right object.Object) object.Object {
+	// * need to switch on both the type of left and right
+	switch {
+	case left.Type() == object.O_INTEGER && right.Type() == object.O_INTEGER:
+		return evalIntegerInfixExpression(operator, left, right)
+	}
+
+	return NULL
+}
+
+func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
+	leftInt := left.(*object.Integer).Value
+	rightInt := right.(*object.Integer).Value
+	var newInt int64
+	switch operator {
+	case "+":
+		newInt = leftInt + rightInt
+	case "-":
+		newInt = leftInt - rightInt
+	case "*":
+		newInt = leftInt * rightInt
+	case "/":
+		newInt = leftInt / rightInt
+	default:
+		return NULL
+	}
+
+	return &object.Integer{Value: newInt}
 }
