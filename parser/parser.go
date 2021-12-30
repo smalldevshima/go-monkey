@@ -111,6 +111,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 // parseStatement checks the current token type and calls the corresponding parse method.
 func (p *Parser) parseStatement() ast.Statement {
+	tokenBefore := p.currentToken
 	// * always check if parsed statement is nil, else the wrapped interface type will mask the nil value
 	switch p.currentToken.Type {
 	case token.LET:
@@ -126,7 +127,12 @@ func (p *Parser) parseStatement() ast.Statement {
 			return s
 		}
 	}
-	msg := fmt.Sprintf("unexpected token %q with value %q when trying to parse statement", p.currentToken.Type, p.currentToken.Literal)
+	msg := fmt.Sprintf(
+		"an error occurred when handling token %q of value %q as the start of a statement with next tokens %q%q of values %q%q",
+		tokenBefore.Type, tokenBefore.Literal,
+		p.currentToken.Type, p.peekToken.Type,
+		p.currentToken.Literal, p.peekToken.Literal,
+	)
 	p.errors = append(p.errors, msg)
 	return nil
 }
@@ -146,7 +152,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	p.nextToken()
 
-	stmt.Value = p.parseExpression(LOWEST)
+	exp := p.parseExpression(LOWEST)
+	if exp == nil {
+		return nil
+	}
+
+	stmt.Value = exp
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -160,7 +171,12 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	p.nextToken()
 
-	stmt.ReturnValue = p.parseExpression(LOWEST)
+	exp := p.parseExpression(LOWEST)
+	if exp == nil {
+		return nil
+	}
+
+	stmt.ReturnValue = exp
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -172,7 +188,12 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.currentToken}
 
-	stmt.Expression = p.parseExpression(LOWEST)
+	exp := p.parseExpression(LOWEST)
+	if exp == nil {
+		return nil
+	}
+
+	stmt.Expression = exp
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -231,6 +252,8 @@ func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 // parsePrefixExpression handles the creation of an ast.Expression at the current token
 // by calling the corresponding parsing method.
 func (p *Parser) parsePrefixExpression() ast.Expression {
+	unhandled := false
+	tokenBefore := p.currentToken
 	switch p.currentToken.Type {
 	case token.BANG, token.DASH:
 		if exp := p.parseUnaryOperator(); exp != nil {
@@ -260,8 +283,20 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if exp := p.parseFunctionLiteral(); exp != nil {
 			return exp
 		}
+	default:
+		unhandled = true
 	}
-	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
+	var msg string
+	if unhandled {
+		msg = fmt.Sprintf("unhandled token %q of value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
+	} else {
+		msg = fmt.Sprintf(
+			"an error occurred when handling token %q of value %q as the start of a prefix expression with next tokens %q%q of values %q%q",
+			tokenBefore.Type, tokenBefore.Literal,
+			p.currentToken.Type, p.peekToken.Type,
+			p.currentToken.Literal, p.peekToken.Literal,
+		)
+	}
 	p.errors = append(p.errors, msg)
 	return nil
 }
@@ -293,13 +328,23 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 		return nil
 	}
 
-	fnLit.Parameters = p.parseFunctionParameters()
+	parameters := p.parseFunctionParameters()
+	if parameters == nil {
+		return nil
+	}
+
+	fnLit.Parameters = parameters
 
 	if !p.expectPeek(token.LBRACE) {
 		return nil
 	}
 
-	fnLit.Body = p.parseBlockStatement()
+	body := p.parseBlockStatement()
+	if body == nil {
+		return nil
+	}
+
+	fnLit.Body = body
 	return fnLit
 }
 
@@ -332,23 +377,35 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	unhandled := false
+	tokenBefore := p.currentToken
 	switch p.currentToken.Type {
 	case token.LPAREN:
 		exp := p.parseCallExpression()
-		if exp == nil {
-			return nil
+		if exp != nil {
+			exp.Function = left
+			return exp
 		}
-		exp.Function = left
-		return exp
 	case token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.ASTERISK, token.SLASH:
 		exp := p.parseBinaryOperator()
-		if exp == nil {
-			return nil
+		if exp != nil {
+			exp.Left = left
+			return exp
 		}
-		exp.Left = left
-		return exp
+	default:
+		unhandled = true
 	}
-	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse infix expression", p.currentToken.Type, p.currentToken.Literal)
+	var msg string
+	if unhandled {
+		msg = fmt.Sprintf("unhandled token %q of value %q when trying to parse infix expression", p.currentToken.Type, p.currentToken.Literal)
+	} else {
+		msg = fmt.Sprintf(
+			"an error occured when handling token %q of value %q as the start of an infix expression with next tokens %q%q of values %q%q",
+			tokenBefore.Type, tokenBefore.Literal,
+			p.currentToken.Type, p.peekToken.Type,
+			p.currentToken.Literal, p.peekToken.Literal,
+		)
+	}
 	p.errors = append(p.errors, msg)
 	return nil
 }
@@ -362,7 +419,12 @@ func (p *Parser) parseUnaryOperator() *ast.PrefixExpression {
 
 	p.nextToken()
 
-	exp.Right = p.parseExpression(PREFIX)
+	right := p.parseExpression(PREFIX)
+	if right == nil {
+		return nil
+	}
+
+	exp.Right = right
 	return exp
 }
 
@@ -374,7 +436,13 @@ func (p *Parser) parseBinaryOperator() *ast.InfixExpression {
 
 	pre := p.currentPrecedence()
 	p.nextToken()
-	exp.Right = p.parseExpression(pre)
+
+	right := p.parseExpression(pre)
+	if right == nil {
+		return nil
+	}
+
+	exp.Right = right
 	return exp
 }
 
@@ -390,7 +458,13 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 
 func (p *Parser) parseCallExpression() *ast.CallExpression {
 	exp := &ast.CallExpression{Token: p.currentToken}
-	exp.Arguments = p.parseCallArguments()
+
+	arguments := p.parseCallArguments()
+	if arguments == nil {
+		return nil
+	}
+
+	exp.Arguments = arguments
 	return exp
 }
 
@@ -430,7 +504,13 @@ func (p *Parser) parseIfExpression() *ast.IfExpression {
 	}
 
 	p.nextToken()
-	exp.Condition = p.parseExpression(LOWEST)
+
+	condition := p.parseExpression(LOWEST)
+	if condition == nil {
+		return nil
+	}
+
+	exp.Condition = condition
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
@@ -439,7 +519,12 @@ func (p *Parser) parseIfExpression() *ast.IfExpression {
 		return nil
 	}
 
-	exp.Then = p.parseBlockStatement()
+	then := p.parseBlockStatement()
+	if then == nil {
+		return nil
+	}
+
+	exp.Then = then
 
 	// * check if there is an ELSE block
 	if !p.peekTokenIs(token.ELSE) {
@@ -451,7 +536,12 @@ func (p *Parser) parseIfExpression() *ast.IfExpression {
 		return nil
 	}
 
-	exp.Otherwise = p.parseBlockStatement()
+	otherwise := p.parseBlockStatement()
+	if otherwise == nil {
+		return nil
+	}
+
+	exp.Otherwise = otherwise
 
 	return exp
 }
