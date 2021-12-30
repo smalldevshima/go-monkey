@@ -46,9 +46,11 @@ func TestEvalBooleanExpression(t *testing.T) {
 		input    string
 		expected bool
 	}{
+		// literal value only
 		{"literal/true", "true", true},
 		{"literal/false", "false", false},
 
+		// bang prefix operator
 		{"bang/literal/true", "!true", false},
 		{"bang/literal/false", "!false", true},
 		{"bang/literal/zero-int", "!0", true},
@@ -62,6 +64,58 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"bang/twice/literal/neg-zero-int", "!!-0", false},
 		{"bang/twice/literal/positive-int", "!!5", true},
 		{"bang/twice/literal/negative-int", "!!-5", true},
+
+		// equality infix operator
+		{"eq/literal/booleans/tt", "true == true", true},
+		{"eq/literal/booleans/tf", "true == false", false},
+		{"eq/literal/booleans/ft", "false == true", false},
+		{"eq/literal/booleans/ff", "false == false", true},
+
+		{"eq/literal/integers/same", "0 == 0", true},
+		{"eq/literal/integers/different", "0 == 10", false},
+
+		// {"eq/literal/bool-int/t-zero", "true == 0", false},
+		// {"eq/literal/bool-int/f-zero", "false == 0", true},
+		// {"eq/literal/bool-int/t-positive", "true == 5", true},
+		// {"eq/literal/bool-int/f-positive", "false == 5", false},
+		// {"eq/literal/bool-int/t-negative", "true == -5", true},
+		// {"eq/literal/bool-int/f-negative", "false == -5", false},
+
+		// inequality infix operator
+		{"neq/literal/booleans/tt", "true != true", false},
+		{"neq/literal/booleans/tf", "true != false", true},
+		{"neq/literal/booleans/ft", "false != true", true},
+		{"neq/literal/booleans/ff", "false != false", false},
+
+		{"neq/literal/integers/same", "0 != 0", false},
+		{"neq/literal/integers/different", "0 != 10", true},
+
+		// {"neq/literal/bool-int/t-zero", "true != 0", true},
+		// {"neq/literal/bool-int/f-zero", "false != 0", false},
+		// {"neq/literal/bool-int/t-positive", "true != 5", false},
+		// {"neq/literal/bool-int/f-positive", "false != 5", true},
+		// {"neq/literal/bool-int/t-negative", "true != -5", false},
+		// {"neq/literal/bool-int/f-negative", "false != -5", true},
+
+		// less-then infix operator
+		{"less/literal/booleans/tt", "true < true", false},
+		{"less/literal/booleans/tf", "true < false", false},
+		{"less/literal/booleans/ft", "false < true", true},
+		{"less/literal/booleans/ff", "false < false", false},
+
+		{"less/literal/integers/same", "0 < 0", false},
+		{"less/literal/integers/lesser", "0 < 10", true},
+		{"less/literal/integers/greater", "10 < 0", false},
+
+		// greater-then infix operator
+		{"greater/literal/booleans/tt", "true > true", false},
+		{"greater/literal/booleans/tf", "true > false", true},
+		{"greater/literal/booleans/ft", "false > true", false},
+		{"greater/literal/booleans/ff", "false > false", false},
+
+		{"greater/literal/integers/same", "0 > 0", false},
+		{"greater/literal/integers/lesser", "0 > 10", false},
+		{"greater/literal/integers/greater", "10 > 0", true},
 	}
 
 	for _, test := range tests {
