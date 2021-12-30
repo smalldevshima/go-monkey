@@ -6,16 +6,18 @@ import (
 	"io"
 
 	"github.com/smalldevshima/go-monkey/lexer"
-	"github.com/smalldevshima/go-monkey/token"
+	"github.com/smalldevshima/go-monkey/parser"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	writer := bufio.NewWriter(out)
 
 	for {
-		fmt.Fprintf(out, PROMPT)
+		writer.WriteString(PROMPT)
+		writer.Flush()
 		scanned := scanner.Scan()
 		if !scanned {
 			return
@@ -23,9 +25,26 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		l := lexer.New(line)
+		p := parser.New(l)
 
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%+v\n", tok)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(writer, p.Errors())
+			continue
 		}
+
+		writer.WriteString(program.String())
+		writer.WriteString("\n")
+	}
+}
+
+func printParserErrors(out *bufio.Writer, errors []string) {
+	out.WriteString(fmt.Sprintf("parser has %d errors:\n", len(errors)))
+	for i, msg := range errors {
+		if i >= 10 {
+			out.WriteString("(omitting more errors)\n")
+			break
+		}
+		out.WriteString(fmt.Sprintf("%3d: %s\n", i+1, msg))
 	}
 }
