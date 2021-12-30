@@ -525,10 +525,28 @@ func TestFunctionCallExpression(t *testing.T) {
 			[]string{"(5 * 2)", "5", "20"},
 		},
 		{
+			"if/no-arg",
+			"if (thisShouldNotBeAllowed) { f }()",
+			"if (thisShouldNotBeAllowed) { f; }",
+			[]string{},
+		},
+		{
 			"if-else/no-arg",
 			"if(neg){incr}else{decr}()",
 			"if (neg) { incr; } else { decr; }",
 			[]string{},
+		},
+		{
+			"if-else/one-arg",
+			"if (a==b != (c==d)) { yes } else { no } (why)",
+			"if (((a == b) != (c == d))) { yes; } else { no; }",
+			[]string{"why"},
+		},
+		{
+			"if-else/multi-arg",
+			"if (iWill) { always } else { never } (gonna, give, you, up)",
+			"if (iWill) { always; } else { never; }",
+			[]string{"gonna", "give", "you", "up"},
 		},
 	}
 	for _, test := range callTests {
