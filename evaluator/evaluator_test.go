@@ -27,6 +27,24 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 }
 
+func TestEvalBooleanExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"literal/true", "true", true},
+		{"literal/false", "false", false},
+	}
+
+	for index, test := range tests {
+		t.Run("boolean/"+fmt.Sprint(index), func(t *testing.T) {
+			evaluated := testEval(test.input)
+			checkBooleanObject(t, evaluated, test.expected)
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
@@ -48,5 +66,19 @@ func checkIntegerObject(t *testing.T, obj object.Object, value int64) {
 	}
 	if integer.Inspect() != fmt.Sprintf(object.F_INTEGER, value) {
 		t.Errorf("integer.Inspect is wrong. expected=%q, got=%q", fmt.Sprintf(object.F_INTEGER, value), integer.Inspect())
+	}
+}
+
+func checkBooleanObject(t *testing.T, obj object.Object, value bool) {
+	boolean, ok := obj.(*object.Boolean)
+	if !ok {
+		t.Fatalf("obj is not *object.Boolean. got=%T: (%+v)", obj, obj)
+	}
+
+	if boolean.Value != value {
+		t.Errorf("boolean.Value is wrong. expected=%v, got=%v", boolean.Value, value)
+	}
+	if boolean.Inspect() != fmt.Sprintf(object.F_BOOLEAN, value) {
+		t.Errorf("boolean.Inspect is wrong. expected=%v, got=%v", fmt.Sprintf(object.F_BOOLEAN, value), boolean.Inspect())
 	}
 }
