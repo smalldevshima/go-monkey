@@ -25,9 +25,9 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.COMMA, token.IF, token.FUNCTION}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.IF, token.FUNCTION}
 	// infixTokens is the list of all tokens that are parsed in infix position
-	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK}
+	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK, token.LPAREN}
 
 	// precedences maps every infix operator to its corresponding precedence value
 	precedences = map[token.TokenType]Precedence{
@@ -39,6 +39,7 @@ var (
 		token.DASH:     SUM,
 		token.SLASH:    PRODUCT,
 		token.ASTERISK: PRODUCT,
+		token.LPAREN:   CALL,
 	}
 )
 
@@ -259,8 +260,6 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if exp := p.parseFunctionLiteral(); exp != nil {
 			return exp
 		}
-	case token.COMMA:
-		// todo
 	}
 	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse prefix expression", p.currentToken.Type, p.currentToken.Literal)
 	p.errors = append(p.errors, msg)
@@ -332,6 +331,28 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	return params
 }
 
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	switch p.currentToken.Type {
+	case token.LPAREN:
+		exp := p.parseCallExpression()
+		if exp == nil {
+			return nil
+		}
+		exp.Function = left
+		return exp
+	case token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.ASTERISK, token.SLASH:
+		exp := p.parseBinaryOperator()
+		if exp == nil {
+			return nil
+		}
+		exp.Left = left
+		return exp
+	}
+	msg := fmt.Sprintf("unhandled token %q with value %q when trying to parse infix expression", p.currentToken.Type, p.currentToken.Literal)
+	p.errors = append(p.errors, msg)
+	return nil
+}
+
 // parseUnaryOperator creates an ast.PrefixExpression from the operators '!' and '-'
 func (p *Parser) parseUnaryOperator() *ast.PrefixExpression {
 	exp := &ast.PrefixExpression{
@@ -345,11 +366,10 @@ func (p *Parser) parseUnaryOperator() *ast.PrefixExpression {
 	return exp
 }
 
-func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseBinaryOperator() *ast.InfixExpression {
 	exp := &ast.InfixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
-		Left:     left,
 	}
 
 	pre := p.currentPrecedence()
@@ -368,7 +388,41 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	return exp
 }
 
-func (p *Parser) parseIfExpression() ast.Expression {
+func (p *Parser) parseCallExpression() *ast.CallExpression {
+	exp := &ast.CallExpression{Token: p.currentToken}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	for !p.currentTokenIs(token.RPAREN) {
+		if p.peekTokenIs(token.EOF) {
+			return nil
+		}
+
+		p.nextToken()
+		arg := p.parseExpression(LOWEST)
+		args = append(args, arg)
+
+		if !p.peekTokenIs(token.RPAREN) && !p.peekTokenIs(token.COMMA) {
+			msg := fmt.Sprintf("unexpected token of type %q with literal %q, expected token of type %q or %q", p.peekToken.Type, p.peekToken.Literal, token.RPAREN, token.COMMA)
+			p.errors = append(p.errors, msg)
+			return []ast.Expression{}
+		}
+		p.nextToken()
+	}
+
+	return args
+}
+
+func (p *Parser) parseIfExpression() *ast.IfExpression {
 	exp := &ast.IfExpression{Token: p.currentToken}
 
 	if !p.expectPeek(token.LPAREN) {
