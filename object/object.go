@@ -6,10 +6,10 @@ import "fmt"
 
 // Object types
 const (
-	O_NULL = "NULL"
+	O_NULL = "T:null"
 
-	O_INTEGER = "INTEGER"
-	O_BOOLEAN = "BOOLEAN"
+	O_INTEGER = "T:int"
+	O_BOOLEAN = "T:bool"
 )
 
 // Object string formats
@@ -37,16 +37,16 @@ type Boolean struct {
 }
 
 func (b *Boolean) Type() ObjectType { return O_BOOLEAN }
-func (b *Boolean) Inspect() string  { return fmt.Sprintf("%v", b.Value) }
+func (b *Boolean) Inspect() string  { return fmt.Sprintf(F_BOOLEAN, b.Value) }
 
 type Integer struct {
 	Value int64
 }
 
 func (i *Integer) Type() ObjectType { return O_INTEGER }
-func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
+func (i *Integer) Inspect() string  { return fmt.Sprintf(F_INTEGER, i.Value) }
 
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return O_NULL }
-func (n *Null) Inspect() string  { return "null" }
+func (n *Null) Inspect() string  { return F_NULL }
