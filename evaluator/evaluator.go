@@ -98,10 +98,18 @@ func evalDashOperatorExpression(operand object.Object) object.Object {
 }
 
 func evalInfixExpression(operator string, left, right object.Object) object.Object {
-	// * need to switch on both the type of left and right
 	switch {
+	// * need to switch on both the type of left and right
 	case left.Type() == object.O_INTEGER && right.Type() == object.O_INTEGER:
 		return evalIntegerInfixExpression(operator, left, right)
+
+	// * special cases for infix operators '==' and '!='
+	// * directly compare pointers, since booleans and null use global objects
+	// * all other types are filtered out by preceding cases
+	case operator == "==":
+		return nativeBooleanToObject(left == right)
+	case operator == "!=":
+		return nativeBooleanToObject(left != right)
 	}
 
 	return NULL
