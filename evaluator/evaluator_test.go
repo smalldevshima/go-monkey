@@ -46,11 +46,11 @@ func TestEvalBooleanExpression(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		// literal value only
+		// * literal value only
 		{"literal/true", "true", true},
 		{"literal/false", "false", false},
 
-		// bang prefix operator
+		// * bang prefix operator
 		{"bang/literal/true", "!true", false},
 		{"bang/literal/false", "!false", true},
 		{"bang/literal/zero-int", "!0", true},
@@ -65,7 +65,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"bang/twice/literal/positive-int", "!!5", true},
 		{"bang/twice/literal/negative-int", "!!-5", true},
 
-		// equality infix operator
+		// * equality infix operator
 		{"eq/literal/booleans/tt", "true == true", true},
 		{"eq/literal/booleans/tf", "true == false", false},
 		{"eq/literal/booleans/ft", "false == true", false},
@@ -81,7 +81,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 		// {"eq/literal/bool-int/t-negative", "true == -5", true},
 		// {"eq/literal/bool-int/f-negative", "false == -5", false},
 
-		// inequality infix operator
+		// * inequality infix operator
 		{"neq/literal/booleans/tt", "true != true", false},
 		{"neq/literal/booleans/tf", "true != false", true},
 		{"neq/literal/booleans/ft", "false != true", true},
@@ -97,7 +97,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 		// {"neq/literal/bool-int/t-negative", "true != -5", false},
 		// {"neq/literal/bool-int/f-negative", "false != -5", true},
 
-		// less-then infix operator
+		// * less-then infix operator
 		// {"less/literal/booleans/tt", "true < true", false},
 		// {"less/literal/booleans/tf", "true < false", false},
 		// {"less/literal/booleans/ft", "false < true", true},
@@ -107,7 +107,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"less/literal/integers/lesser", "0 < 10", true},
 		{"less/literal/integers/greater", "10 < 0", false},
 
-		// greater-then infix operator
+		// * greater-then infix operator
 		// {"greater/literal/booleans/tt", "true > true", false},
 		// {"greater/literal/booleans/tf", "true > false", true},
 		// {"greater/literal/booleans/ft", "false > true", false},
