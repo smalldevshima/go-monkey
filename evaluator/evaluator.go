@@ -7,6 +7,13 @@ import (
 
 // Constants / Variables
 
+// Error format strings
+const (
+	ERR_PREFIX_UNKNOWN ErrorFormat = "unknown operator: %s%s"
+	ERR_INFIX_UNKNOWN ErrorFormat= "unknown operator: %s %s %s"
+	ERR_INFIX_MISMATCH ErrorFormat= "type mismatch: %s %s %s"
+)
+
 var (
 	NULL = &object.Null{}
 
@@ -18,6 +25,8 @@ var (
 )
 
 // Functions
+
+func newError(format ErrorFormat, a ...interface)
 
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
@@ -188,3 +197,7 @@ func isTruthy(obj object.Object) bool {
 
 	return true
 }
+
+/// Types
+
+type ErrorFormat string
