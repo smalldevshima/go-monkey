@@ -17,8 +17,19 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}{
 		{"literal/zero", "0", 0},
 		{"literal/positive", "123456", 123456},
-		{"literal/negative-zero", "-0", 0},
-		{"literal/negative-non-zero", "-123456", -123456},
+
+		{"literal/negation/zero", "-0", 0},
+		{"literal/negation/non-zero", "-123456", -123456},
+		{"literal/negation/twice/zero", "--0", 0},
+		{"literal/negation/twice/non-zero", "--123456", 123456},
+
+		{"literal/sum", "1 + 2", 3},
+		{"literal/difference", "5 - 4", 1},
+		{"literal/product", "8 * 8", 64},
+		{"literal/division", "30 / 3", 10},
+
+		{"literal/grouped/simple", "(1 + 2) * 5", 15},
+		{"literal/grouped/complex", "3 + (3 - (1 + 2) * 5 - (-10 / (90 - 88)))", 20},
 	}
 
 	for _, test := range tests {
