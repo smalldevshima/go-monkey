@@ -173,6 +173,25 @@ func (fl *FunctionLiteral) String() string {
 	return fmt.Sprintf("%s(%s) %s", fl.TokenLiteral(), strings.Join(params, ", "), fl.Body)
 }
 
+type CallExpression struct {
+	// the token token.LPAREN
+	Token token.Token
+	// Something that evaluates to a function
+	Function  Expression
+	Arguments []Expression
+}
+
+func (ce *CallExpression) expressionNode()      {}
+func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce *CallExpression) String() string {
+	args := []string{}
+
+	for _, arg := range ce.Arguments {
+		args = append(args, arg.String())
+	}
+	return fmt.Sprintf("%s(%s)", ce.Function, strings.Join(args, ", "))
+}
+
 type PrefixExpression struct {
 	// the prefix token, e.g. token.BANG or token.DASH
 	Token    token.Token
