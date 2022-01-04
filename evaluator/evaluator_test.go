@@ -216,6 +216,12 @@ func TestErrorHandling(t *testing.T) {
 		},
 
 		{
+			"identifier/unknown",
+			"hello",
+			"unknown identifier: hello",
+		},
+
+		{
 			"operator/type/unknown/negate-bool",
 			"-true;",
 			"unknown operator: -@bool@",
@@ -273,6 +279,61 @@ func TestErrorHandling(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			evaluated := testEval(test.input)
 			checkErrorObject(t, evaluated, test.message)
+		})
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected interface{}
+	}{
+		{
+			"bind-literal/integer",
+			"let value = 10; value;",
+			10,
+		},
+		{
+			"bind-literal/boolean",
+			"let some = true; some;",
+			true,
+		},
+
+		{
+			"bind-variable/integer",
+			"let first = 10; let second = first; second;",
+			10,
+		},
+		{
+			"bind-variable/integer",
+			"let first = false; let second = first; second;",
+			false,
+		},
+
+		{
+			"bind-expression/integer",
+			"let left = 23; let right = 31; let result = left + right * 10; result;",
+			333,
+		},
+		{
+			"bind-expression/boolean",
+			"let left = true; let right = false; let result = !left == right != false; result;",
+			true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			switch exp := test.expected.(type) {
+			case int:
+				checkIntegerObject(t, evaluated, int64(exp))
+			case bool:
+				checkBooleanObject(t, evaluated, exp)
+			default:
+				t.Fatalf("unknown expected type %T=%v", exp, exp)
+			}
 		})
 	}
 }
