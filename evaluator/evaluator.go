@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/smalldevshima/go-monkey/ast"
 	"github.com/smalldevshima/go-monkey/object"
 )
@@ -10,8 +12,8 @@ import (
 // Error format strings
 const (
 	ERR_PREFIX_UNKNOWN ErrorFormat = "unknown operator: %s%s"
-	ERR_INFIX_UNKNOWN ErrorFormat= "unknown operator: %s %s %s"
-	ERR_INFIX_MISMATCH ErrorFormat= "type mismatch: %s %s %s"
+	ERR_INFIX_UNKNOWN  ErrorFormat = "unknown operator: %s %s %s"
+	ERR_INFIX_MISMATCH ErrorFormat = "type mismatch: %s %s %s"
 )
 
 var (
@@ -26,7 +28,9 @@ var (
 
 // Functions
 
-func newError(format ErrorFormat, a ...interface)
+func newError(format ErrorFormat, a ...interface{}) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(string(format), a...)}
+}
 
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
@@ -109,7 +113,7 @@ func evalPrefixExpression(operator string, operand object.Object) object.Object 
 	case "-":
 		return evalDashOperatorExpression(operand)
 	}
-	return NULL
+	return newError(ERR_PREFIX_UNKNOWN, operator, operand.Type())
 }
 
 // evalBangOperatorExpression returns the opposite object of the isTruthy(operand) result
@@ -122,7 +126,7 @@ func evalBangOperatorExpression(operand object.Object) object.Object {
 
 func evalDashOperatorExpression(operand object.Object) object.Object {
 	if operand.Type() != object.O_INTEGER {
-		return NULL
+		return newError(ERR_PREFIX_UNKNOWN, "-", operand.Type())
 	}
 
 	value := operand.(*object.Integer).Value
@@ -132,6 +136,8 @@ func evalDashOperatorExpression(operand object.Object) object.Object {
 func evalInfixExpression(operator string, left, right object.Object) object.Object {
 	switch {
 	// * need to switch on both the type of left and right
+	case left.Type() != right.Type():
+		return newError(ERR_INFIX_MISMATCH, left.Type(), operator, right.Type())
 	case left.Type() == object.O_INTEGER && right.Type() == object.O_INTEGER:
 		return evalIntegerInfixExpression(operator, left, right)
 
@@ -144,7 +150,7 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return nativeBooleanToObject(left != right)
 	}
 
-	return NULL
+	return newError(ERR_INFIX_UNKNOWN, left.Type(), operator, right.Type())
 }
 
 func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
@@ -169,7 +175,7 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	case ">":
 		return nativeBooleanToObject(leftInt > rightInt)
 	default:
-		return NULL
+		return newError(ERR_INFIX_UNKNOWN, left.Type(), operator, right.Type())
 	}
 
 	return &object.Integer{Value: newInt}
