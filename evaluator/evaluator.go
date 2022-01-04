@@ -32,6 +32,13 @@ func newError(format ErrorFormat, a ...interface{}) *object.Error {
 	return &object.Error{Message: fmt.Sprintf(string(format), a...)}
 }
 
+func isError(obj object.Object) bool {
+	if obj != nil {
+		return obj.Type() == object.O_ERROR
+	}
+	return false
+}
+
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	// * Statements:
@@ -43,6 +50,9 @@ func Eval(node ast.Node) object.Object {
 		return Eval(node.Expression)
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue)
+		if isError(val) {
+			return val
+		}
 		return &object.ReturnValue{Value: val}
 
 	// * Literal expressions:
@@ -54,10 +64,19 @@ func Eval(node ast.Node) object.Object {
 	// * Operator expressions:
 	case *ast.PrefixExpression:
 		operand := Eval(node.Right)
+		if isError(operand) {
+			return operand
+		}
 		return evalPrefixExpression(node.Operator, operand)
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
+		if isError(left) {
+			return left
+		}
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 		return evalInfixExpression(node.Operator, left, right)
 
 	// * Control flow expressions:
@@ -102,8 +121,7 @@ func evalBlockStatement(statements []ast.Statement) object.Object {
 
 		if result != nil {
 			// * return early, if result type is object.O_RETURN_VALUE or object.O_ERRIR
-			rt := result.Type()
-			if rt == object.O_RETURN_VALUE || rt == object.O_ERROR {
+			if result.Type() == object.O_RETURN_VALUE || isError(result) {
 				return result
 			}
 		}
@@ -189,6 +207,9 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 
 func evalIfExpression(ie *ast.IfExpression) object.Object {
 	condition := Eval(ie.Condition)
+	if isError(condition) {
+		return condition
+	}
 
 	if isTruthy(condition) {
 		return Eval(ie.Then)
