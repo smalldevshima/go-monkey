@@ -15,6 +15,7 @@ const (
 	ERR_INFIX_UNKNOWN      ErrorFormat = "unknown operator: %s %s %s"
 	ERR_INFIX_MISMATCH     ErrorFormat = "type mismatch: %s %s %s"
 	ERR_IDENTIFIER_UNKNOWN ErrorFormat = "unknown identifier: %s"
+	ERR_ARG_COUNT_MISMATCH ErrorFormat = "function %q expects %d arguments. got=%d"
 )
 
 var (
@@ -108,6 +109,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	// * Identifiers, function calls:
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		return evalCallExpression(function, node.Arguments, env)
 	}
 
 	return nil
@@ -252,6 +259,25 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	}
 
 	return val
+}
+
+func evalCallExpression(function *ast.FunctionLiteral, args []ast.Expression, env *object.Environment) object.Object {
+	// parse provided argument expressions for parameters
+	params := []object.Object{}
+	for _, arg := range args {
+		param := Eval(arg, env)
+		if isError(param) {
+			return param
+		}
+		params = append(params, param)
+	}
+
+	if len(params) != len(function.Parameters) {
+		return newError(ERR_ARG_COUNT_MISMATCH, len(function.Parameters), len(params))
+	}
+
+	//todo
+	return NULL
 }
 
 /// Types
