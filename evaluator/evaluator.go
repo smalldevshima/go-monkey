@@ -11,9 +11,10 @@ import (
 
 // Error format strings
 const (
-	ERR_PREFIX_UNKNOWN ErrorFormat = "unknown operator: %s%s"
-	ERR_INFIX_UNKNOWN  ErrorFormat = "unknown operator: %s %s %s"
-	ERR_INFIX_MISMATCH ErrorFormat = "type mismatch: %s %s %s"
+	ERR_PREFIX_UNKNOWN     ErrorFormat = "unknown operator: %s%s"
+	ERR_INFIX_UNKNOWN      ErrorFormat = "unknown operator: %s %s %s"
+	ERR_INFIX_MISMATCH     ErrorFormat = "type mismatch: %s %s %s"
+	ERR_IDENTIFIER_UNKNOWN ErrorFormat = "unknown identifier: %s"
 )
 
 var (
@@ -28,6 +29,17 @@ var (
 
 // Functions
 
+// isTruthy defines which values are truthy in the Monkey language
+func isTruthy(obj object.Object) bool {
+	for _, falsyVal := range FALSY_VALUES {
+		if falsyVal == obj {
+			return false
+		}
+	}
+
+	return true
+}
+
 func newError(format ErrorFormat, a ...interface{}) *object.Error {
 	return &object.Error{Message: fmt.Sprintf(string(format), a...)}
 }
@@ -39,21 +51,27 @@ func isError(obj object.Object) bool {
 	return false
 }
 
-func Eval(node ast.Node) object.Object {
+func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	// * Statements:
 	case *ast.Program:
-		return evalProgram(node.Statements)
+		return evalProgram(node.Statements, env)
 	case *ast.BlockStatement:
-		return evalBlockStatement(node.Statements)
+		return evalBlockStatement(node.Statements, env)
 	case *ast.ExpressionStatement:
-		return Eval(node.Expression)
+		return Eval(node.Expression, env)
 	case *ast.ReturnStatement:
-		val := Eval(node.ReturnValue)
+		val := Eval(node.ReturnValue, env)
 		if isError(val) {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+	case *ast.LetStatement:
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+		env.Set(node.Name.Value, val)
 
 	// * Literal expressions:
 	case *ast.BooleanLiteral:
@@ -63,17 +81,17 @@ func Eval(node ast.Node) object.Object {
 
 	// * Operator expressions:
 	case *ast.PrefixExpression:
-		operand := Eval(node.Right)
+		operand := Eval(node.Right, env)
 		if isError(operand) {
 			return operand
 		}
 		return evalPrefixExpression(node.Operator, operand)
 	case *ast.InfixExpression:
-		left := Eval(node.Left)
+		left := Eval(node.Left, env)
 		if isError(left) {
 			return left
 		}
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -81,8 +99,11 @@ func Eval(node ast.Node) object.Object {
 
 	// * Control flow expressions:
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
 
+	// * Identifiers, function calls:
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
 	}
 
 	return nil
@@ -95,11 +116,11 @@ func nativeBooleanToObject(input bool) *object.Boolean {
 	return FALSE
 }
 
-func evalProgram(statements []ast.Statement) object.Object {
+func evalProgram(statements []ast.Statement, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, stmt := range statements {
-		result = Eval(stmt)
+		result = Eval(stmt, env)
 
 		// * return early, if result is an object.ReturnValue or an object.Error
 		switch result := result.(type) {
@@ -113,11 +134,11 @@ func evalProgram(statements []ast.Statement) object.Object {
 	return result
 }
 
-func evalBlockStatement(statements []ast.Statement) object.Object {
+func evalBlockStatement(statements []ast.Statement, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, stmt := range statements {
-		result = Eval(stmt)
+		result = Eval(stmt, env)
 
 		if result != nil {
 			// * return early, if result type is object.O_RETURN_VALUE or object.O_ERRIR
@@ -205,30 +226,28 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	return &object.Integer{Value: newInt}
 }
 
-func evalIfExpression(ie *ast.IfExpression) object.Object {
-	condition := Eval(ie.Condition)
+func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
+	condition := Eval(ie.Condition, env)
 	if isError(condition) {
 		return condition
 	}
 
 	if isTruthy(condition) {
-		return Eval(ie.Then)
+		return Eval(ie.Then, env)
 	} else if ie.Otherwise != nil {
-		return Eval(ie.Otherwise)
+		return Eval(ie.Otherwise, env)
 	}
 
 	return NULL
 }
 
-// isTruthy defines which values are truthy in the Monkey language
-func isTruthy(obj object.Object) bool {
-	for _, falsyVal := range FALSY_VALUES {
-		if falsyVal == obj {
-			return false
-		}
+func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+	val, ok := env.Get(node.Value)
+	if !ok {
+		return newError(ERR_IDENTIFIER_UNKNOWN, node.Value)
 	}
 
-	return true
+	return val
 }
 
 /// Types

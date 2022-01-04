@@ -228,7 +228,7 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			"operator/type/unknown/sum-bool",
-			"-true;",
+			"true + false;",
 			"unknown operator: @bool@ + @bool@",
 		},
 
@@ -344,8 +344,9 @@ func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 func checkIntegerObject(t *testing.T, obj object.Object, value int64) {
