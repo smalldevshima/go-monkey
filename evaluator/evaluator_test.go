@@ -389,6 +389,67 @@ func TestFunctionObject(t *testing.T) {
 	}
 }
 
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected interface{}
+	}{
+		{
+			"no-param/return-literal",
+			"let five = fn() { 5 }; five();",
+			5,
+		},
+		{
+			"no-param/return-captured",
+			"let x = 10; let getX = fn() { x }; getX();",
+			10,
+		},
+
+		{
+			"one-param/return-identity",
+			"let ident = fn(x) {x}; ident(1234);",
+			1234,
+		},
+		{
+			"one-param/return-shadowing-param",
+			"let shadow = 10; let f = fn(shadow) { shadow }; f(42);",
+			42,
+		},
+
+		{
+			"multi-param/return-curried",
+			`
+			let curriedSum = fn(a) {
+				return fn(b) { return second(a,b) };
+			}
+			let second = fn(a, b) {
+				return fn(c) { return third(a,b,c)};
+			}
+			let third = fn (a,b,c) {
+				return a+b+c;
+			}
+			curriedSum(1)(2)(3)
+			`,
+			6,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			switch exp := test.expected.(type) {
+			case int:
+				checkIntegerObject(t, evaluated, int64(exp))
+			case bool:
+				checkBooleanObject(t, evaluated, exp)
+			default:
+				t.Fatalf("unknown expected type %T=%v", exp, exp)
+			}
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
