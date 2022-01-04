@@ -7,6 +7,7 @@ import (
 
 	"github.com/smalldevshima/go-monkey/evaluator"
 	"github.com/smalldevshima/go-monkey/lexer"
+	"github.com/smalldevshima/go-monkey/object"
 	"github.com/smalldevshima/go-monkey/parser"
 )
 
@@ -15,6 +16,7 @@ const PROMPT = ">> "
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	writer := bufio.NewWriter(out)
+	env := object.NewEnvironment()
 
 	for {
 		writer.WriteString(PROMPT)
@@ -34,7 +36,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			writer.WriteString(evaluated.Inspect())
 		} else {
