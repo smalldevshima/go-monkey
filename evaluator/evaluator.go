@@ -15,6 +15,7 @@ const (
 	ERR_INFIX_UNKNOWN      ErrorFormat = "unknown operator: %s %s %s"
 	ERR_INFIX_MISMATCH     ErrorFormat = "type mismatch: %s %s %s"
 	ERR_IDENTIFIER_UNKNOWN ErrorFormat = "unknown identifier: %s"
+	ERR_NOT_A_FUNCTION     ErrorFormat = "cannot call expression of type: %s"
 	ERR_ARG_COUNT_MISMATCH ErrorFormat = "function %q expects %d arguments. got=%d"
 )
 
@@ -261,7 +262,12 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	return val
 }
 
-func evalCallExpression(function *ast.FunctionLiteral, args []ast.Expression, env *object.Environment) object.Object {
+func evalCallExpression(function object.Object, args []ast.Expression, env *object.Environment) object.Object {
+	fn, ok := function.(*object.Function)
+	if !ok {
+		return newError(ERR_NOT_A_FUNCTION, function.Type())
+	}
+
 	// parse provided argument expressions for parameters
 	params := []object.Object{}
 	for _, arg := range args {
@@ -272,8 +278,8 @@ func evalCallExpression(function *ast.FunctionLiteral, args []ast.Expression, en
 		params = append(params, param)
 	}
 
-	if len(params) != len(function.Parameters) {
-		return newError(ERR_ARG_COUNT_MISMATCH, len(function.Parameters), len(params))
+	if len(params) != len(fn.Parameters) {
+		return newError(ERR_ARG_COUNT_MISMATCH, len(fn.Parameters), len(params))
 	}
 
 	//todo
