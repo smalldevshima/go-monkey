@@ -338,6 +338,57 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		params []string
+		body   string
+	}{
+		{
+			"no-param/single-line",
+			"fn() { return 2; }",
+			[]string{},
+			"return 2;",
+		},
+		{
+			"one-param/single-line",
+			"fn(x) { x + 1; }",
+			[]string{"x"},
+			"(x + 1);",
+		},
+		{
+			"multi-param/single-line",
+			"fn(x, y, z) { x - y - z }",
+			[]string{"x", "y", "z"},
+			"((x - y) - z);",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			fn, ok := evaluated.(*object.Function)
+			if !ok {
+				t.Fatalf("evaluated is not *object.Function. got=%T: %+v", evaluated, evaluated)
+			}
+
+			if len(fn.Parameters) != len(test.params) {
+				t.Fatalf("fn.Parameters does not contain %d params. got=%d", len(test.params), len(fn.Parameters))
+			}
+			for index, param := range fn.Parameters {
+				if param.String() != test.params[index] {
+					t.Errorf("fn.Paramerts[%d].String is wrong.\nexpected:\n\t%s\ngot:\n\t%s", index, test.params[index], param)
+				}
+			}
+
+			if fn.Body.String() != test.body {
+				t.Fatalf("fn.Body.String is wrong.\nexpected:\n>>>\n%s\n<<<\ngot:\n>>>\n%s\n<<<", test.body, fn.Body)
+			}
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
