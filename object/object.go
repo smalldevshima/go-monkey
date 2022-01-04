@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/smalldevshima/go-monkey/ast"
+)
 
 /// Constants / Variables
 
@@ -17,6 +22,8 @@ var (
 	O_RETURN_VALUE ObjectType = typeString("return_value")
 
 	O_ERROR = typeString("error")
+
+	O_FUNCTION = typeString("function")
 )
 
 // Object string formats
@@ -29,6 +36,8 @@ const (
 	F_RETURN_VALUE = "%v"
 
 	F_ERROR = "ERROR: %s"
+
+	F_FUNCTION = "fn(%s) {\n%s\n}"
 )
 
 /// Functions
@@ -81,3 +90,18 @@ type Error struct {
 
 func (e *Error) Type() ObjectType { return O_ERROR }
 func (e *Error) Inspect() string  { return fmt.Sprintf(F_ERROR, e.Message) }
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+func (f *Function) Type() ObjectType { return O_FUNCTION }
+func (f *Function) Inspect() string {
+	args := []string{}
+	for _, arg := range f.Parameters {
+		args = append(args, arg.String())
+	}
+	return fmt.Sprintf(F_FUNCTION, strings.Join(args, ", "), f.Body.String())
+}
