@@ -299,6 +299,11 @@ func TestLetStatements(t *testing.T) {
 			"let some = true; some;",
 			true,
 		},
+		{
+			"bind-literal/function",
+			"let func = fn () { 10; }; func();",
+			10,
+		},
 
 		{
 			"bind-variable/integer",
