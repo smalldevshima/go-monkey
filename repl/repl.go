@@ -40,7 +40,7 @@ func Start(in io.Reader, out io.Writer) {
 		if evaluated != nil {
 			writer.WriteString(evaluated.Inspect())
 		} else {
-			writer.WriteString("I cannot evaluate that, sorry!")
+			writer.WriteString("nil")
 		}
 		writer.WriteString("\n")
 	}
