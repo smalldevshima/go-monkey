@@ -282,8 +282,23 @@ func evalCallExpression(function object.Object, args []ast.Expression, env *obje
 		return newError(ERR_ARG_COUNT_MISMATCH, len(fn.Parameters), len(params))
 	}
 
-	//todo
-	return NULL
+	extendedEnv := extendFunctionEnvironment(fn, params)
+	evaluated := Eval(fn.Body, extendedEnv)
+	if returnValue, ok := evaluated.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+
+	return evaluated
+}
+
+func extendFunctionEnvironment(fn *object.Function, args []object.Object) *object.Environment {
+	env := object.NewEnclosedEnvironment(fn.Env)
+
+	for paramIndex, param := range fn.Parameters {
+		env.Set(param.Value, args[paramIndex])
+	}
+
+	return env
 }
 
 /// Types
