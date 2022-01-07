@@ -405,6 +405,11 @@ func TestFunctionApplication(t *testing.T) {
 			"let x = 10; let getX = fn() { x }; getX();",
 			10,
 		},
+		{
+			"no-param/shadowed-identifier",
+			"let x = 3; fn() { let x = 11; } (); x;",
+			3,
+		},
 
 		{
 			"one-param/return-identity",
