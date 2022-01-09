@@ -30,7 +30,7 @@ var (
 			{Type: token.LET, Literal: "let"},
 			{Type: token.IDENTIFIER, Literal: "foobar"},
 			{Type: token.ASSIGN, Literal: "="},
-			{Type: token.STRING, Literal: "\"foobar\""},
+			{Type: token.STRING, Literal: "foobar"},
 			{Type: token.SEMICOLON, Literal: ";"},
 		},
 	}
