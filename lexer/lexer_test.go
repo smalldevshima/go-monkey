@@ -14,6 +14,7 @@ var (
 		input: `
 			let five = 5;
 			let ten = 10;
+			let foobar = "foobar";
 			`,
 		expectedTokens: []token.Token{
 			{Type: token.LET, Literal: "let"},
@@ -25,6 +26,11 @@ var (
 			{Type: token.IDENTIFIER, Literal: "ten"},
 			{Type: token.ASSIGN, Literal: "="},
 			{Type: token.INTEGER, Literal: "10"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "foobar"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.STRING, Literal: "\"foobar\""},
 			{Type: token.SEMICOLON, Literal: ";"},
 		},
 	}

@@ -80,6 +80,9 @@ func (l *Lexer) NextToken() token.Token {
 	case '>':
 		tok = newToken(token.GT, l.char)
 	// delimiters
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case ';':
 		tok = newToken(token.SEMICOLON, l.char)
 	case ',':
@@ -152,6 +155,17 @@ func (l *Lexer) readInteger() string {
 		l.readChar()
 	}
 	return l.input[start:l.position]
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.char == '"' || l.char == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }
 
 // skipWhitespace consumes the input until the next character where isWhitespace=false.
