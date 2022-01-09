@@ -9,6 +9,7 @@ const (
 
 	IDENTIFIER TokenType = "IDENTIFIER"
 	INTEGER    TokenType = "INTEGER"
+	STRING     TokenType = "STRING"
 
 	ASSIGN   TokenType = "="
 	PLUS     TokenType = "+"
