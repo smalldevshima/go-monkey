@@ -156,6 +156,15 @@ func (bl *BooleanLiteral) expressionNode()      {}
 func (bl *BooleanLiteral) TokenLiteral() string { return bl.Token.Literal }
 func (bl *BooleanLiteral) String() string       { return bl.TokenLiteral() }
 
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (sl *StringLiteral) expressionNode()      {}
+func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
+func (sl *StringLiteral) String() string       { return sl.TokenLiteral() }
+
 type FunctionLiteral struct {
 	// the token token.FUNCTION
 	Token      token.Token
@@ -170,7 +179,7 @@ func (fl *FunctionLiteral) String() string {
 	for _, p := range fl.Parameters {
 		params = append(params, p.String())
 	}
-	return fmt.Sprintf("%s(%s) %s", fl.TokenLiteral(), strings.Join(params, ", "), fl.Body)
+	return fmt.Sprintf("%s(%s) { %s }", fl.TokenLiteral(), strings.Join(params, ", "), fl.Body)
 }
 
 type CallExpression struct {
@@ -241,7 +250,7 @@ func (ie *IfExpression) String() string {
 		then = ie.Then.String()
 	}
 	if ie.Otherwise != nil {
-		otherwise = " else " + ie.Otherwise.String()
+		otherwise = " else { " + ie.Otherwise.String() + " }"
 	}
-	return fmt.Sprintf("if (%s) %s%s", condition, then, otherwise)
+	return fmt.Sprintf("if (%s) { %s }%s", condition, then, otherwise)
 }
