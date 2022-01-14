@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.IF, token.FUNCTION}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.STRING, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.IF, token.FUNCTION}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK, token.LPAREN}
 
@@ -263,6 +263,10 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if exp := p.parseIntegerLiteral(); exp != nil {
 			return exp
 		}
+	case token.STRING:
+		if exp := p.parseStringLiteral(); exp != nil {
+			return exp
+		}
 	case token.IDENTIFIER:
 		if exp := p.parseIdentifier(); exp != nil {
 			return exp
@@ -315,6 +319,10 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	lit := &ast.IntegerLiteral{Token: p.currentToken, Value: value}
 	return lit
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
 func (p *Parser) parseBooleanLiteral() ast.Expression {

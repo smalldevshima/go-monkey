@@ -661,7 +661,7 @@ func checkStringLiteral(t *testing.T, exp ast.Expression, value string) {
 	if strLit.Token.Type != token.STRING {
 		t.Errorf("strLit.Token.Type is not %q. got=%q", token.STRING, strLit.Token.Type)
 	}
-	if strLit.Value != value {
+	if fmt.Sprintf(`"%s"`, strLit.Value) != value {
 		t.Errorf("strLit.Value is not %q. got=%q", value, strLit.Value)
 	}
 }
