@@ -126,6 +126,21 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestEvalStringExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+			checkStringObject(t, evaluated, test.expected)
+		})
+	}
+}
+
 func TestIfElseExpression(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -498,6 +513,21 @@ func checkBooleanObject(t *testing.T, obj object.Object, value bool) {
 	}
 	if boolean.Inspect() != fmt.Sprintf(object.F_BOOLEAN, value) {
 		t.Errorf("boolean.Inspect is wrong. expected=%v, got=%v", fmt.Sprintf(object.F_BOOLEAN, value), boolean.Inspect())
+	}
+}
+
+func checkStringObject(t *testing.T, obj object.Object, value string) {
+	t.Helper()
+	str, ok := obj.(*object.String)
+	if !ok {
+		t.Fatalf("obj is not *object.String. got=%T (%+v)", obj, obj)
+	}
+
+	if str.Value != value {
+		t.Errorf("str.Value is wrong. expected=%v, got=%v", value, str.Value)
+	}
+	if str.Inspect() != fmt.Sprintf(object.F_STRING, value) {
+		t.Errorf("str.Inspect is wrong. expected=%v, got=%v", fmt.Sprintf(object.F_STRING, value), str.Inspect())
 	}
 }
 

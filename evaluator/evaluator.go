@@ -80,6 +80,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return nativeBooleanToObject(node.Value)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
