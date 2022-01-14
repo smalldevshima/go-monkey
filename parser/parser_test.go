@@ -137,6 +137,8 @@ func TestLiteralExpression(t *testing.T) {
 		{"5;", 5},
 		{"true;", true},
 		{"false;", false},
+		{`"hello world";`, `"hello world"`},
+		{"myVar;", "myVar"},
 	}
 
 	for _, test := range literalTests {
@@ -649,6 +651,21 @@ func checkBooleanLiteral(t *testing.T, exp ast.Expression, value bool) {
 	}
 }
 
+func checkStringLiteral(t *testing.T, exp ast.Expression, value string) {
+	t.Helper()
+	strLit, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("exp is not *ast.StringLiteral. got=%T", exp)
+		return
+	}
+	if strLit.Token.Type != token.STRING {
+		t.Errorf("strLit.Token.Type is not %q. got=%q", token.STRING, strLit.Token.Type)
+	}
+	if strLit.Value != value {
+		t.Errorf("strLit.Value is not %q. got=%q", value, strLit.Value)
+	}
+}
+
 func checkIdentifier(t *testing.T, exp ast.Expression, value string) {
 	t.Helper()
 	ident, ok := exp.(*ast.Identifier)
@@ -671,7 +688,11 @@ func checkLiteralExpression(t *testing.T, exp ast.Expression, expected interface
 	case int64:
 		checkIntegerLiteral(t, exp, v)
 	case string:
-		checkIdentifier(t, exp, v)
+		if v[0] == '"' {
+			checkStringLiteral(t, exp, v)
+		} else {
+			checkIdentifier(t, exp, v)
+		}
 	case bool:
 		checkBooleanLiteral(t, exp, v)
 	default:
