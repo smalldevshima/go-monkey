@@ -18,6 +18,7 @@ var (
 
 	O_INTEGER ObjectType = typeString("int")
 	O_BOOLEAN ObjectType = typeString("bool")
+	O_STRING  ObjectType = typeString("string")
 
 	O_RETURN_VALUE ObjectType = typeString("return_value")
 
@@ -32,6 +33,7 @@ const (
 
 	F_BOOLEAN = "%v"
 	F_INTEGER = "%d"
+	F_STRING  = "%v"
 
 	F_RETURN_VALUE = "%v"
 
@@ -71,6 +73,13 @@ type Integer struct {
 
 func (i *Integer) Type() ObjectType { return O_INTEGER }
 func (i *Integer) Inspect() string  { return fmt.Sprintf(F_INTEGER, i.Value) }
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() ObjectType { return O_STRING }
+func (s *String) Inspect() string  { return fmt.Sprintf(F_STRING, s.Value) }
 
 type Null struct{}
 
