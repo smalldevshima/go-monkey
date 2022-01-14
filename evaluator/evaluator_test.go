@@ -131,7 +131,11 @@ func TestEvalStringExpression(t *testing.T) {
 		name     string
 		input    string
 		expected string
-	}{}
+	}{
+		{"literal", `"hello world"`, "hello world"},
+
+		{"concatenation", `"goodbye" + " " + "world"`, "goodbye world"},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

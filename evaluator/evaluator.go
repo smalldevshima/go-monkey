@@ -199,6 +199,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return newError(ERR_INFIX_MISMATCH, left.Type(), operator, right.Type())
 	case left.Type() == object.O_INTEGER && right.Type() == object.O_INTEGER:
 		return evalIntegerInfixExpression(operator, left, right)
+	case left.Type() == object.O_STRING && right.Type() == object.O_STRING:
+		return evalStringInfixExpression(operator, left, right)
 
 	// * special cases for infix operators '==' and '!='
 	// * directly compare pointers, since booleans and null use global objects
@@ -238,6 +240,20 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	}
 
 	return &object.Integer{Value: newInt}
+}
+
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+	leftString := left.(*object.String).Value
+	rightString := right.(*object.String).Value
+	var newString string
+	switch operator {
+	case "+":
+		newString = leftString + rightString
+	default:
+		return newError(ERR_INFIX_UNKNOWN, left.Type(), operator, right.Type())
+	}
+
+	return &object.String{Value: newString}
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
