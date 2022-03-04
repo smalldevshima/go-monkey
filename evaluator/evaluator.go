@@ -286,32 +286,51 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 }
 
 func evalCallExpression(function object.Object, args []ast.Expression, env *object.Environment) object.Object {
-	fn, ok := function.(*object.Function)
-	if !ok {
-		return newError(ERR_NOT_A_FUNCTION, function.Type())
-	}
-
-	// parse provided argument expressions for parameters
-	params := []object.Object{}
-	for _, arg := range args {
-		param := Eval(arg, env)
-		if isError(param) {
-			return param
+	// define this as function to avoid duplicate code in switch-case branches
+	parseArguments := func(args ...ast.Expression) (params []object.Object, err *object.Object) {
+		// parse provided argument expressions for parameters
+		params = []object.Object{}
+		for _, arg := range args {
+			param := Eval(arg, env)
+			if isError(param) {
+				return nil, &param
+			}
+			params = append(params, param)
 		}
-		params = append(params, param)
+		return
 	}
 
-	if len(params) != len(fn.Parameters) {
-		return newError(ERR_ARG_COUNT_MISMATCH, len(fn.Parameters), len(params))
+	switch fn := function.(type) {
+	case *object.Function:
+		args, err := parseArguments(args...)
+		if err != nil {
+			return *err
+		}
+
+		if len(args) != len(fn.Parameters) {
+			return newError(ERR_ARG_COUNT_MISMATCH, len(fn.Parameters), len(args))
+		}
+
+		extendedEnv := extendFunctionEnvironment(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		if returnValue, ok := evaluated.(*object.ReturnValue); ok {
+			return returnValue.Value
+		}
+
+		return evaluated
+
+	case *object.Builtin:
+		args, err := parseArguments(args...)
+		if err != nil {
+			return *err
+		}
+
+		return fn.Fn(args...)
+
+	default:
+		return newError(ERR_NOT_A_FUNCTION, fn.Type())
 	}
 
-	extendedEnv := extendFunctionEnvironment(fn, params)
-	evaluated := Eval(fn.Body, extendedEnv)
-	if returnValue, ok := evaluated.(*object.ReturnValue); ok {
-		return returnValue.Value
-	}
-
-	return evaluated
 }
 
 func extendFunctionEnvironment(fn *object.Function, args []object.Object) *object.Environment {
