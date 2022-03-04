@@ -273,11 +273,16 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
 	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError(ERR_IDENTIFIER_UNKNOWN, node.Value)
+	if ok {
+		return val
 	}
 
-	return val
+	builtin, ok := builtins[node.Value]
+	if ok {
+		return builtin
+	}
+
+	return newError(ERR_IDENTIFIER_UNKNOWN, node.Value)
 }
 
 func evalCallExpression(function object.Object, args []ast.Expression, env *object.Environment) object.Object {
