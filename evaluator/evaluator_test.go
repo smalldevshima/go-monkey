@@ -489,6 +489,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{"len/non-empty-string/1", `len("four")`, 4},
 		{"len/non-empty-string/2", `len("hello world")`, 11},
 		{"len/wrong-type/int", `len(1)`, "argument to `len` not supported, got @int@"},
+		{"len/wrong-type/bool", `len(true)`, "argument to `len` not supported, got @bool@"},
 		{"len/wrong-arg-count", `len("one", "two")`, "wrong number of arguments. got=2, want=1"},
 	}
 
