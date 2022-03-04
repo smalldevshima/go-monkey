@@ -17,6 +17,7 @@ const (
 	ERR_IDENTIFIER_UNKNOWN ErrorFormat = "unknown identifier: %s"
 	ERR_NOT_A_FUNCTION     ErrorFormat = "cannot call expression of type: %s"
 	ERR_ARG_COUNT_MISMATCH ErrorFormat = "function %q expects %d arguments. got=%d"
+	ERR_BUILTIN_TYPE_ERROR ErrorFormat = "argument %d of call to builtin %q expects type %s, got %s"
 )
 
 var (
@@ -286,7 +287,7 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 }
 
 func evalCallExpression(function object.Object, args []ast.Expression, env *object.Environment) object.Object {
-	// define this as function to avoid duplicate code in switch-case branches
+	// define this as local function to avoid duplicate code in switch-case branches
 	parseArguments := func(args ...ast.Expression) (params []object.Object, err *object.Object) {
 		// parse provided argument expressions for parameters
 		params = []object.Object{}
