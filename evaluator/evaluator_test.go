@@ -479,6 +479,33 @@ func TestFunctionApplication(t *testing.T) {
 	}
 }
 
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected interface{}
+	}{
+		{"len/empty-string", `len("")`, 0},
+		{"len/non-empty-string/1", `len("four")`, 4},
+		{"len/non-empty-string/2", `len("hello world")`, 11},
+		{"len/wrong-type/int", `len(1)`, "argument to `len` not supported, got @int@"},
+		{"len/wrong-arg-count", `len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			evaluated := testEval(test.input)
+
+			switch expected := test.expected.(type) {
+			case int:
+				checkIntegerObject(t, evaluated, int64(expected))
+			case string:
+				checkErrorObject(t, evaluated, expected)
+			}
+		})
+	}
+}
+
 /// helpers
 
 func testEval(input string) object.Object {
