@@ -25,6 +25,7 @@ var (
 	O_ERROR = typeString("error")
 
 	O_FUNCTION = typeString("function")
+	O_BUILTIN  = typeString("builtin")
 )
 
 // Object string formats
@@ -40,6 +41,7 @@ const (
 	F_ERROR = "ERROR: %s"
 
 	F_FUNCTION = "fn(%s) {\n%s\n}"
+	F_BUILTIN  = "fn(...args) { internal code }"
 )
 
 /// Functions
@@ -114,3 +116,11 @@ func (f *Function) Inspect() string {
 	}
 	return fmt.Sprintf(F_FUNCTION, strings.Join(args, ", "), f.Body.String())
 }
+
+type BuiltinFunction func(args ...Object) Object
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Type() ObjectType { return O_BUILTIN }
+func (b *Builtin) Inspect() string  { return F_BUILTIN }
