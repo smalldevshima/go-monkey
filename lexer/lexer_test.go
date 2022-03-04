@@ -15,6 +15,7 @@ var (
 			let five = 5;
 			let ten = 10;
 			let foobar = "foobar";
+			let myarray = [1, 2];
 			`,
 		expectedTokens: []token.Token{
 			{Type: token.LET, Literal: "let"},
@@ -31,6 +32,15 @@ var (
 			{Type: token.IDENTIFIER, Literal: "foobar"},
 			{Type: token.ASSIGN, Literal: "="},
 			{Type: token.STRING, Literal: "foobar"},
+			{Type: token.SEMICOLON, Literal: ";"},
+			{Type: token.LET, Literal: "let"},
+			{Type: token.IDENTIFIER, Literal: "myarray"},
+			{Type: token.ASSIGN, Literal: "="},
+			{Type: token.LBRACKET, Literal: "["},
+			{Type: token.INTEGER, Literal: "1"},
+			{Type: token.COMMA, Literal: ","},
+			{Type: token.INTEGER, Literal: "2"},
+			{Type: token.RBRACKET, Literal: "]"},
 			{Type: token.SEMICOLON, Literal: ";"},
 		},
 	}
