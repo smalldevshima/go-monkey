@@ -48,7 +48,7 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.char {
-	// operators
+	//* operators
 	case '=':
 		if l.peekChar() == '=' {
 			char := l.char
@@ -79,7 +79,8 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LT, l.char)
 	case '>':
 		tok = newToken(token.GT, l.char)
-	// delimiters
+
+	//* delimiters
 	case '"':
 		tok.Type = token.STRING
 		tok.Literal = l.readString()
@@ -95,6 +96,12 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.char)
 	case '}':
 		tok = newToken(token.RBRACE, l.char)
+	case '[':
+		tok = newToken(token.LBRACKET, l.char)
+	case ']':
+		tok = newToken(token.RBRACKET, l.char)
+
+	//* EOF, identifiers, integers
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
