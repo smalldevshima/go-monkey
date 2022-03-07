@@ -594,7 +594,7 @@ func TestParsingArrayLiterals(t *testing.T) {
 		length int
 	}{
 		{"no-elements", "[]", 0},
-		{"three-elements", `[1, "2", func(){10}]`, 3},
+		{"three-elements", `[1, "2", true]`, 3},
 	}
 
 	for _, test := range arrayTests {

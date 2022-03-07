@@ -25,7 +25,7 @@ const (
 
 var (
 	// prefixTokens is the list of all tokens that are parsed in prefix position
-	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.STRING, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.IF, token.FUNCTION}
+	prefixTokens = []token.TokenType{token.IDENTIFIER, token.INTEGER, token.STRING, token.BANG, token.DASH, token.TRUE, token.FALSE, token.LPAREN, token.IF, token.FUNCTION, token.LBRACKET}
 	// infixTokens is the list of all tokens that are parsed in infix position
 	infixTokens = []token.TokenType{token.EQ, token.NEQ, token.LT, token.GT, token.PLUS, token.DASH, token.SLASH, token.ASTERISK, token.LPAREN}
 
@@ -287,6 +287,10 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		if exp := p.parseFunctionLiteral(); exp != nil {
 			return exp
 		}
+	case token.LBRACKET:
+		if exp := p.parseArrayLiteral(); exp != nil {
+			return exp
+		}
 	default:
 		unhandled = true
 	}
@@ -354,6 +358,14 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 
 	fnLit.Body = body
 	return fnLit
+}
+
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.currentToken}
+
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+
+	return array
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {
@@ -467,7 +479,7 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 func (p *Parser) parseCallExpression() *ast.CallExpression {
 	exp := &ast.CallExpression{Token: p.currentToken}
 
-	arguments := p.parseCallArguments()
+	arguments := p.parseExpressionList(token.RPAREN)
 	if arguments == nil {
 		return nil
 	}
@@ -476,12 +488,12 @@ func (p *Parser) parseCallExpression() *ast.CallExpression {
 	return exp
 }
 
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
 
-	if p.peekTokenIs(token.RPAREN) {
+	if p.peekTokenIs(end) {
 		p.nextToken()
-		return args
+		return list
 	}
 
 	for !p.currentTokenIs(token.RPAREN) {
@@ -490,18 +502,18 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 		}
 
 		p.nextToken()
-		arg := p.parseExpression(LOWEST)
-		args = append(args, arg)
+		expr := p.parseExpression(LOWEST)
+		list = append(list, expr)
 
-		if !p.peekTokenIs(token.RPAREN) && !p.peekTokenIs(token.COMMA) {
-			msg := fmt.Sprintf("unexpected token of type %q with literal %q, expected token of type %q or %q", p.peekToken.Type, p.peekToken.Literal, token.RPAREN, token.COMMA)
+		if !p.peekTokenIs(end) && !p.peekTokenIs(token.COMMA) {
+			msg := fmt.Sprintf("unexpected token of type %q with literal %q, expected token of type %q or %q", p.peekToken.Type, p.peekToken.Literal, end, token.COMMA)
 			p.errors = append(p.errors, msg)
 			return []ast.Expression{}
 		}
 		p.nextToken()
 	}
 
-	return args
+	return list
 }
 
 func (p *Parser) parseIfExpression() *ast.IfExpression {
