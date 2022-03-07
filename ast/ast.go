@@ -201,6 +201,23 @@ func (ce *CallExpression) String() string {
 	return fmt.Sprintf("%s(%s)", ce.Function, strings.Join(args, ", "))
 }
 
+type ArrayLiteral struct {
+	// the '[' token
+	Token    token.Token
+	Elements []Expression
+}
+
+func (al *ArrayLiteral) expressionNode()      {}
+func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+	elements := []string{}
+
+	for _, el := range al.Elements {
+		elements = append(elements, el.String())
+	}
+	return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
+}
+
 type PrefixExpression struct {
 	// the prefix token, e.g. token.BANG or token.DASH
 	Token    token.Token
