@@ -587,6 +587,40 @@ func TestFunctionCallExpression(t *testing.T) {
 	}
 }
 
+func TestParsingArrayLiterals(t *testing.T) {
+	arrayTests := []struct {
+		name   string
+		input  string
+		length int
+	}{
+		{"no-elements", "[]", 0},
+		{"three-elements", `[1, "2", func(){10}]`, 3},
+	}
+
+	for _, test := range arrayTests {
+		t.Run(test.name, func(t *testing.T) {
+			l := lexer.New(test.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("Statements[0] is not *ast.ExpressionStatement, got=%T", program.Statements[0])
+			}
+
+			array, ok := stmt.Expression.(*ast.ArrayLiteral)
+			if !ok {
+				t.Fatalf("stmt is not *ast.ArrayLiteral, got=%T", stmt)
+			}
+
+			if len(array.Elements) != test.length {
+				t.Fatalf("len(array.Elements) not %d, got=%d", test.length, len(array.Elements))
+			}
+		})
+	}
+}
+
 /// helpers
 
 func checkParserErrors(t *testing.T, p *Parser) {
